@@ -8,9 +8,9 @@ rem set LINUXINC=-I linux inc files
 del *.lib /s /q /f
 
 
-set TRIPLE=i686-pc-windows-msvc
-set COMMONFLAGS= -Wno-deprecated-declarations -Wno-unknown-attributes -Wno-builtin-requires-header
+set COMMONFLAGS= -Wno-deprecated-declarations -Wno-unknown-attributes -Wno-builtin-requires-header -D HAVE_DL_ITERATE_PHDR
 
+set TRIPLE=i686-pc-windows-msvc
 set COMPILEFLAGS=-O0 -c -g -I include %COMMONFLAGS%  
 
 del *.o /s /q /f
