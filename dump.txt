@@ -1,0 +1,4642 @@
+# 1 "dyn_load.c"
+# 1 "<built-in>" 1
+# 1 "<built-in>" 3
+# 332 "<built-in>" 3
+# 1 "<command line>" 1
+# 1 "<built-in>" 2
+# 1 "dyn_load.c" 2
+# 15 "dyn_load.c"
+# 1 "include\\private/gc_priv.h" 1
+# 52 "include\\private/gc_priv.h"
+# 1 "include\\private/../gc.h" 1
+# 39 "include\\private/../gc.h"
+# 1 "include/gc_version.h" 1
+# 40 "include\\private/../gc.h" 2
+
+
+
+
+
+
+# 1 "include/gc_config_macros.h" 1
+# 150 "include/gc_config_macros.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 51 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 3
+typedef int ptrdiff_t;
+# 62 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 3
+typedef unsigned int size_t;
+# 90 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 3
+typedef int wchar_t;
+# 118 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 3
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include/__stddef_max_align_t.h" 1 3
+# 35 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include/__stddef_max_align_t.h" 3
+typedef struct {
+  long long __clang_max_align_nonce1
+      __attribute__((__aligned__(__alignof__(long long))));
+  long double __clang_max_align_nonce2
+      __attribute__((__aligned__(__alignof__(long double))));
+} max_align_t;
+# 119 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 2 3
+# 151 "include/gc_config_macros.h" 2
+# 286 "include/gc_config_macros.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\features.h" 1
+# 287 "include/gc_config_macros.h" 2
+# 47 "include\\private/../gc.h" 2
+
+
+
+
+
+typedef void * GC_PTR;
+# 70 "include\\private/../gc.h"
+  typedef unsigned long GC_word;
+  typedef long GC_signed_word;
+
+
+
+
+extern unsigned GC_get_version(void);
+
+
+
+
+extern GC_word GC_gc_no;
+
+
+extern GC_word GC_get_gc_no(void);
+
+
+
+
+
+  extern int GC_parallel;
+# 106 "include\\private/../gc.h"
+  extern int GC_get_parallel(void);
+
+
+
+
+
+
+typedef void * ( * GC_oom_func)(size_t );
+extern GC_oom_func GC_oom_fn;
+# 124 "include\\private/../gc.h"
+extern void GC_set_oom_fn(GC_oom_func) __attribute__((__nonnull__(1)));
+extern GC_oom_func GC_get_oom_fn(void);
+
+typedef void ( * GC_on_heap_resize_proc)(GC_word );
+extern GC_on_heap_resize_proc GC_on_heap_resize;
+
+
+
+extern void GC_set_on_heap_resize(GC_on_heap_resize_proc);
+extern GC_on_heap_resize_proc GC_get_on_heap_resize(void);
+
+
+
+typedef enum {
+    GC_EVENT_START ,
+    GC_EVENT_MARK_START,
+    GC_EVENT_MARK_END,
+    GC_EVENT_RECLAIM_START,
+    GC_EVENT_RECLAIM_END,
+    GC_EVENT_END ,
+    GC_EVENT_PRE_STOP_WORLD ,
+    GC_EVENT_POST_STOP_WORLD ,
+    GC_EVENT_PRE_START_WORLD ,
+    GC_EVENT_POST_START_WORLD ,
+    GC_EVENT_THREAD_SUSPENDED,
+    GC_EVENT_THREAD_UNSUSPENDED
+} GC_EventType;
+
+typedef void ( * GC_on_collection_event_proc)(GC_EventType);
+
+
+
+
+
+extern void GC_set_on_collection_event(GC_on_collection_event_proc);
+extern GC_on_collection_event_proc GC_get_on_collection_event(void);
+
+
+
+
+  typedef void ( * GC_on_thread_event_proc)(GC_EventType,
+                                                void * );
+
+
+
+
+  extern void GC_set_on_thread_event(GC_on_thread_event_proc);
+  extern GC_on_thread_event_proc GC_get_on_thread_event(void);
+
+
+
+
+extern int GC_find_leak;
+
+
+
+
+
+
+
+extern void GC_set_find_leak(int);
+extern int GC_get_find_leak(void);
+
+extern int GC_all_interior_pointers;
+# 200 "include\\private/../gc.h"
+extern void GC_set_all_interior_pointers(int);
+extern int GC_get_all_interior_pointers(void);
+
+extern int GC_finalize_on_demand;
+
+
+
+
+
+
+extern void GC_set_finalize_on_demand(int);
+extern int GC_get_finalize_on_demand(void);
+
+extern int GC_java_finalization;
+# 222 "include\\private/../gc.h"
+extern void GC_set_java_finalization(int);
+extern int GC_get_java_finalization(void);
+
+typedef void ( * GC_finalizer_notifier_proc)(void);
+extern GC_finalizer_notifier_proc GC_finalizer_notifier;
+# 236 "include\\private/../gc.h"
+extern void GC_set_finalizer_notifier(GC_finalizer_notifier_proc);
+extern GC_finalizer_notifier_proc GC_get_finalizer_notifier(void);
+
+extern
+
+
+
+  int GC_dont_gc;
+# 253 "include\\private/../gc.h"
+extern int GC_dont_expand;
+
+
+
+extern void GC_set_dont_expand(int);
+extern int GC_get_dont_expand(void);
+
+extern int GC_use_entire_heap;
+# 271 "include\\private/../gc.h"
+extern int GC_full_freq;
+# 285 "include\\private/../gc.h"
+extern void GC_set_full_freq(int);
+extern int GC_get_full_freq(void);
+
+extern GC_word GC_non_gc_bytes;
+# 298 "include\\private/../gc.h"
+extern void GC_set_non_gc_bytes(GC_word);
+extern GC_word GC_get_non_gc_bytes(void);
+
+extern int GC_no_dls;
+# 310 "include\\private/../gc.h"
+extern void GC_set_no_dls(int);
+extern int GC_get_no_dls(void);
+
+extern GC_word GC_free_space_divisor;
+# 330 "include\\private/../gc.h"
+extern void GC_set_free_space_divisor(GC_word);
+extern GC_word GC_get_free_space_divisor(void);
+
+extern GC_word GC_max_retries;
+
+
+
+
+
+
+
+extern void GC_set_max_retries(GC_word);
+extern GC_word GC_get_max_retries(void);
+
+
+extern char *GC_stackbottom;
+# 361 "include\\private/../gc.h"
+extern int GC_dont_precollect;
+# 372 "include\\private/../gc.h"
+extern void GC_set_dont_precollect(int);
+extern int GC_get_dont_precollect(void);
+
+extern unsigned long GC_time_limit;
+# 392 "include\\private/../gc.h"
+extern void GC_set_time_limit(unsigned long);
+extern unsigned long GC_get_time_limit(void);
+# 405 "include\\private/../gc.h"
+extern void GC_set_pages_executable(int);
+
+
+
+
+
+extern int GC_get_pages_executable(void);
+# 425 "include\\private/../gc.h"
+extern void GC_set_handle_fork(int);
+# 434 "include\\private/../gc.h"
+extern void GC_atfork_prepare(void);
+extern void GC_atfork_parent(void);
+extern void GC_atfork_child(void);
+
+
+
+extern void GC_init(void);
+# 455 "include\\private/../gc.h"
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_malloc(size_t );
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_malloc_atomic(size_t );
+extern __attribute__((__malloc__)) char * GC_strdup(const char *);
+extern __attribute__((__malloc__)) char *
+        GC_strndup(const char *, size_t) __attribute__((__nonnull__(1)));
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_malloc_uncollectable(size_t );
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_malloc_stubborn(size_t );
+
+
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(2))) void *
+        GC_memalign(size_t , size_t );
+extern int GC_posix_memalign(void ** , size_t ,
+                        size_t ) __attribute__((__nonnull__(1)));
+# 480 "include\\private/../gc.h"
+extern void GC_free(void *);
+# 495 "include\\private/../gc.h"
+extern void GC_change_stubborn(const void *) __attribute__((__nonnull__(1)));
+extern void GC_end_stubborn_change(const void *) __attribute__((__nonnull__(1)));
+# 509 "include\\private/../gc.h"
+extern void * GC_base(void * );
+
+
+
+
+
+extern int GC_is_heap_ptr(const void *);
+
+
+
+
+extern size_t GC_size(const void * ) __attribute__((__nonnull__(1)));
+# 543 "include\\private/../gc.h"
+extern void * GC_realloc(void * ,
+                                 size_t )
+                                             __attribute__((__alloc_size__(2)));
+
+
+
+extern int GC_expand_hp(size_t );
+
+
+
+
+
+
+extern void GC_set_max_heap_size(GC_word );
+
+
+
+
+
+
+
+extern void GC_exclude_static_roots(void * ,
+                                            void * );
+
+
+extern void GC_clear_roots(void);
+
+
+
+
+extern void GC_add_roots(void * ,
+                                 void * );
+
+
+
+extern void GC_remove_roots(void * ,
+                                    void * );
+# 593 "include\\private/../gc.h"
+extern void GC_register_displacement(size_t );
+
+
+
+extern void GC_debug_register_displacement(size_t );
+
+
+extern void GC_gcollect(void);
+
+
+
+
+
+
+extern void GC_gcollect_and_unmap(void);
+# 622 "include\\private/../gc.h"
+typedef int ( * GC_stop_func)(void);
+extern int GC_try_to_collect(GC_stop_func )
+                                                        __attribute__((__nonnull__(1)));
+
+
+
+
+
+extern void GC_set_stop_func(GC_stop_func )
+                                                        __attribute__((__nonnull__(1)));
+extern GC_stop_func GC_get_stop_func(void);
+# 647 "include\\private/../gc.h"
+extern size_t GC_get_heap_size(void);
+
+
+
+
+extern size_t GC_get_free_bytes(void);
+
+
+
+
+
+extern size_t GC_get_unmapped_bytes(void);
+
+
+
+
+extern size_t GC_get_bytes_since_gc(void);
+
+
+
+
+extern size_t GC_get_total_bytes(void);
+# 677 "include\\private/../gc.h"
+extern void GC_get_heap_usage_safe(GC_word * ,
+                                           GC_word * ,
+                                           GC_word * ,
+                                           GC_word * ,
+                                           GC_word * );
+
+
+
+
+
+struct GC_prof_stats_s {
+  GC_word heapsize_full;
+
+
+  GC_word free_bytes_full;
+
+
+  GC_word unmapped_bytes;
+
+
+  GC_word bytes_allocd_since_gc;
+
+
+  GC_word allocd_bytes_before_gc;
+
+
+
+  GC_word non_gc_bytes;
+
+
+  GC_word gc_no;
+
+
+  GC_word markers_m1;
+
+
+
+  GC_word bytes_reclaimed_since_gc;
+
+  GC_word reclaimed_bytes_before_gc;
+
+
+};
+# 730 "include\\private/../gc.h"
+extern size_t GC_get_prof_stats(struct GC_prof_stats_s *,
+                                        size_t );
+
+
+
+
+  extern size_t GC_get_prof_stats_unsafe(struct GC_prof_stats_s *,
+                                                 size_t );
+
+
+
+
+extern size_t GC_get_memory_use(void);
+
+
+
+extern void GC_disable(void);
+
+
+
+extern int GC_is_disabled(void);
+
+
+
+
+extern void GC_enable(void);
+# 768 "include\\private/../gc.h"
+extern void GC_enable_incremental(void);
+# 779 "include\\private/../gc.h"
+extern int GC_incremental_protection_needs(void);
+# 788 "include\\private/../gc.h"
+extern int GC_collect_a_little(void);
+# 804 "include\\private/../gc.h"
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_malloc_ignore_off_page(size_t );
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_malloc_atomic_ignore_off_page(size_t );
+# 819 "include\\private/../gc.h"
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_malloc_atomic_uncollectable(size_t );
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc_atomic_uncollectable(size_t, const char * s, int i);
+
+
+
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc(size_t , const char * s, int i);
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc_atomic(size_t , const char * s, int i);
+extern __attribute__((__malloc__)) char *
+        GC_debug_strdup(const char *, const char * s, int i);
+extern __attribute__((__malloc__)) char *
+        GC_debug_strndup(const char *, size_t, const char * s, int i)
+                                                        __attribute__((__nonnull__(1)));
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc_uncollectable(size_t ,
+                                      const char * s, int i);
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc_stubborn(size_t , const char * s, int i);
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc_ignore_off_page(size_t ,
+                                        const char * s, int i);
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc_atomic_ignore_off_page(size_t ,
+                                        const char * s, int i);
+extern void GC_debug_free(void *);
+extern void * GC_debug_realloc(void * ,
+                        size_t , const char * s, int i)
+                                             __attribute__((__alloc_size__(2)));
+extern void GC_debug_change_stubborn(const void *) __attribute__((__nonnull__(1)));
+extern void GC_debug_end_stubborn_change(const void *)
+                                                        __attribute__((__nonnull__(1)));
+# 866 "include\\private/../gc.h"
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+        GC_debug_malloc_replacement(size_t );
+extern __attribute__((__alloc_size__(2))) void *
+        GC_debug_realloc_replacement(void * ,
+                                     size_t );
+# 973 "include\\private/../gc.h"
+typedef void ( * GC_finalization_proc)(void * ,
+                                                  void * );
+
+extern void GC_register_finalizer(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+extern void GC_debug_register_finalizer(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+# 1032 "include\\private/../gc.h"
+extern void GC_register_finalizer_ignore_self(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+extern void GC_debug_register_finalizer_ignore_self(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+
+
+
+
+
+extern void GC_register_finalizer_no_order(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+extern void GC_debug_register_finalizer_no_order(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+# 1070 "include\\private/../gc.h"
+extern void GC_register_finalizer_unreachable(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+extern void GC_debug_register_finalizer_unreachable(void * ,
+                        GC_finalization_proc , void * ,
+                        GC_finalization_proc * , void ** )
+                                                __attribute__((__nonnull__(1)));
+# 1088 "include\\private/../gc.h"
+extern int GC_register_disappearing_link(void ** )
+                                                __attribute__((__nonnull__(1)));
+# 1110 "include\\private/../gc.h"
+extern int GC_general_register_disappearing_link(void ** ,
+                                                    const void * )
+                        __attribute__((__nonnull__(1))) __attribute__((__nonnull__(2)));
+# 1147 "include\\private/../gc.h"
+extern int GC_move_disappearing_link(void ** ,
+                                             void ** )
+                        __attribute__((__nonnull__(2)));
+# 1162 "include\\private/../gc.h"
+extern int GC_unregister_disappearing_link(void ** );
+
+
+
+
+extern int GC_register_long_link(void ** ,
+                                    const void * )
+                        __attribute__((__nonnull__(1))) __attribute__((__nonnull__(2)));
+# 1178 "include\\private/../gc.h"
+extern int GC_move_long_link(void ** ,
+                                     void ** )
+                        __attribute__((__nonnull__(2)));
+
+
+
+extern int GC_unregister_long_link(void ** );
+# 1194 "include\\private/../gc.h"
+typedef enum {
+   GC_TOGGLE_REF_DROP,
+   GC_TOGGLE_REF_STRONG,
+   GC_TOGGLE_REF_WEAK
+} GC_ToggleRefStatus;
+
+
+
+
+
+typedef GC_ToggleRefStatus ( *GC_toggleref_func)(void * );
+
+
+
+
+
+
+extern void GC_set_toggleref_func(GC_toggleref_func);
+extern GC_toggleref_func GC_get_toggleref_func(void);
+# 1222 "include\\private/../gc.h"
+extern int GC_toggleref_add(void * , int )
+                                                __attribute__((__nonnull__(1)));
+
+
+
+
+typedef void ( * GC_await_finalize_proc)(void * );
+extern void GC_set_await_finalize_proc(GC_await_finalize_proc);
+extern GC_await_finalize_proc GC_get_await_finalize_proc(void);
+
+
+
+
+extern int GC_should_invoke_finalizers(void);
+
+extern int GC_invoke_finalizers(void);
+# 1266 "include\\private/../gc.h"
+typedef void ( * GC_warn_proc)(char * ,
+                                          GC_word );
+extern void GC_set_warn_proc(GC_warn_proc ) __attribute__((__nonnull__(1)));
+
+extern GC_warn_proc GC_get_warn_proc(void);
+
+
+
+extern void GC_ignore_warn_proc(char *, GC_word);
+
+
+extern void GC_set_log_fd(int);
+# 1286 "include\\private/../gc.h"
+typedef void ( * GC_abort_func)(const char * );
+extern void GC_set_abort_func(GC_abort_func) __attribute__((__nonnull__(1)));
+extern GC_abort_func GC_get_abort_func(void);
+# 1298 "include\\private/../gc.h"
+typedef GC_word GC_hidden_pointer;
+# 1312 "include\\private/../gc.h"
+typedef void * ( * GC_fn_type)(void * );
+extern void * GC_call_with_alloc_lock(GC_fn_type ,
+                                void * ) __attribute__((__nonnull__(1)));
+# 1328 "include\\private/../gc.h"
+struct GC_stack_base {
+  void * mem_base;
+
+
+
+};
+
+typedef void * ( * GC_stack_base_func)(
+                struct GC_stack_base * , void * );
+
+
+
+
+
+extern void * GC_call_with_stack_base(GC_stack_base_func ,
+                                        void * ) __attribute__((__nonnull__(1)));
+# 1365 "include\\private/../gc.h"
+  extern void GC_set_suspend_signal(int);
+
+
+
+  extern void GC_set_thr_restart_signal(int);
+
+
+
+  extern int GC_get_suspend_signal(void);
+
+
+
+
+  extern int GC_get_thr_restart_signal(void);
+
+
+
+  extern void GC_start_mark_threads(void);
+# 1391 "include\\private/../gc.h"
+  extern void GC_allow_register_threads(void);
+# 1414 "include\\private/../gc.h"
+  extern int GC_register_my_thread(const struct GC_stack_base *)
+                                                        __attribute__((__nonnull__(1)));
+
+
+
+  extern int GC_thread_is_registered(void);
+
+
+
+
+  extern void GC_register_altstack(void * ,
+                                           GC_word ,
+                                           void * ,
+                                           GC_word );
+# 1441 "include\\private/../gc.h"
+  extern int GC_unregister_my_thread(void);
+# 1453 "include\\private/../gc.h"
+extern void * GC_do_blocking(GC_fn_type ,
+                                void * ) __attribute__((__nonnull__(1)));
+# 1465 "include\\private/../gc.h"
+extern void * GC_call_with_gc_active(GC_fn_type ,
+                                void * ) __attribute__((__nonnull__(1)));
+# 1475 "include\\private/../gc.h"
+extern int GC_get_stack_base(struct GC_stack_base *)
+                                                        __attribute__((__nonnull__(1)));
+# 1487 "include\\private/../gc.h"
+extern void * GC_same_obj(void * , void * );
+
+
+
+
+
+extern void * GC_pre_incr(void **, ptrdiff_t )
+                                                        __attribute__((__nonnull__(1)));
+extern void * GC_post_incr(void **, ptrdiff_t )
+                                                        __attribute__((__nonnull__(1)));
+# 1506 "include\\private/../gc.h"
+extern void * GC_is_visible(void * );
+
+
+
+
+
+
+extern void * GC_is_valid_displacement(void * );
+# 1522 "include\\private/../gc.h"
+extern void GC_dump_named(const char * );
+extern void GC_dump(void);
+
+
+
+extern void GC_dump_regions(void);
+
+
+
+
+extern void GC_dump_finalization(void);
+# 1572 "include\\private/../gc.h"
+extern void ( * GC_same_obj_print_proc)(void * ,
+                                                   void * );
+extern void ( * GC_is_valid_displacement_print_proc)(void *);
+extern void ( * GC_is_visible_print_proc)(void *);
+
+
+
+
+
+# 1 "include/gc_pthread_redirects.h" 1
+# 34 "include/gc_pthread_redirects.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\time.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\time.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/cdefs.h" 1
+# 77 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/cdefs.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/cdefs_elf.h" 1
+# 78 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/cdefs.h" 2
+# 547 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/cdefs.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\android/api-level.h" 1
+# 548 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/cdefs.h" 2
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\time.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/time.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/time.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h" 1
+# 31 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdint.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdint.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdint.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\machine/wchar_limits.h" 1
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdint.h" 2
+
+typedef signed char __int8_t;
+typedef unsigned char __uint8_t;
+typedef short __int16_t;
+typedef unsigned short __uint16_t;
+typedef int __int32_t;
+typedef unsigned int __uint32_t;
+
+
+
+
+typedef long long __int64_t;
+typedef unsigned long long __uint64_t;
+
+
+
+
+
+
+typedef int __intptr_t;
+typedef unsigned int __uintptr_t;
+
+
+typedef __int8_t int8_t;
+typedef __uint8_t uint8_t;
+
+typedef __int16_t int16_t;
+typedef __uint16_t uint16_t;
+
+typedef __int32_t int32_t;
+typedef __uint32_t uint32_t;
+
+typedef __int64_t int64_t;
+typedef __uint64_t uint64_t;
+
+typedef __intptr_t intptr_t;
+typedef __uintptr_t uintptr_t;
+
+typedef int8_t int_least8_t;
+typedef uint8_t uint_least8_t;
+
+typedef int16_t int_least16_t;
+typedef uint16_t uint_least16_t;
+
+typedef int32_t int_least32_t;
+typedef uint32_t uint_least32_t;
+
+typedef int64_t int_least64_t;
+typedef uint64_t uint_least64_t;
+
+typedef int8_t int_fast8_t;
+typedef uint8_t uint_fast8_t;
+
+typedef int64_t int_fast64_t;
+typedef uint64_t uint_fast64_t;
+
+
+
+
+
+
+
+typedef int32_t int_fast16_t;
+typedef uint32_t uint_fast16_t;
+typedef int32_t int_fast32_t;
+typedef uint32_t uint_fast32_t;
+
+
+typedef uint64_t uintmax_t;
+typedef int64_t intmax_t;
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h" 2
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/types.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/types.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/types.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/types.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/types.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/types.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/int-ll64.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/int-ll64.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/bitsperlong.h" 1
+# 27 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/bitsperlong.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/bitsperlong.h" 1
+# 28 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/bitsperlong.h" 2
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/int-ll64.h" 2
+
+
+typedef __signed__ char __s8;
+typedef unsigned char __u8;
+typedef __signed__ short __s16;
+typedef unsigned short __u16;
+
+typedef __signed__ int __s32;
+typedef unsigned int __u32;
+
+__extension__ typedef __signed__ long long __s64;
+
+__extension__ typedef unsigned long long __u64;
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/types.h" 2
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/types.h" 2
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/types.h" 2
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/posix_types.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/posix_types.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/stddef.h" 1
+# 19 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/stddef.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/compiler.h" 1
+# 20 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/stddef.h" 2
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/posix_types.h" 2
+
+
+
+typedef struct {
+ unsigned long fds_bits[1024 / (8 * sizeof(long))];
+} __kernel_fd_set;
+
+typedef void (*__kernel_sighandler_t)(int);
+typedef int __kernel_key_t;
+typedef int __kernel_mqd_t;
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/posix_types.h" 1
+# 20 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/posix_types.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/posix_types_32.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/posix_types_32.h"
+typedef unsigned short __kernel_mode_t;
+
+
+typedef unsigned short __kernel_ipc_pid_t;
+
+typedef unsigned short __kernel_uid_t;
+typedef unsigned short __kernel_gid_t;
+
+
+typedef unsigned short __kernel_old_dev_t;
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/posix_types.h" 1
+# 24 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/posix_types.h"
+typedef long __kernel_long_t;
+typedef unsigned long __kernel_ulong_t;
+
+
+
+typedef __kernel_ulong_t __kernel_ino_t;
+
+
+
+
+
+
+typedef int __kernel_pid_t;
+# 49 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/posix_types.h"
+typedef __kernel_long_t __kernel_suseconds_t;
+
+
+typedef int __kernel_daddr_t;
+
+
+
+typedef unsigned int __kernel_uid32_t;
+typedef unsigned int __kernel_gid32_t;
+
+
+
+typedef __kernel_uid_t __kernel_old_uid_t;
+typedef __kernel_gid_t __kernel_old_gid_t;
+# 71 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/posix_types.h"
+typedef unsigned int __kernel_size_t;
+typedef int __kernel_ssize_t;
+
+typedef int __kernel_ptrdiff_t;
+# 84 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/posix_types.h"
+typedef struct {
+ int val[2];
+} __kernel_fsid_t;
+
+
+typedef __kernel_long_t __kernel_off_t;
+typedef long long __kernel_loff_t;
+typedef __kernel_long_t __kernel_time_t;
+typedef __kernel_long_t __kernel_clock_t;
+
+typedef int __kernel_timer_t;
+typedef int __kernel_clockid_t;
+typedef char * __kernel_caddr_t;
+typedef unsigned short __kernel_uid16_t;
+
+typedef unsigned short __kernel_gid16_t;
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/posix_types_32.h" 2
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/posix_types.h" 2
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/posix_types.h" 2
+# 25 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/types.h" 2
+
+
+typedef __u16 __le16;
+
+typedef __u16 __be16;
+typedef __u32 __le32;
+typedef __u32 __be32;
+typedef __u64 __le64;
+
+typedef __u64 __be64;
+typedef __u16 __sum16;
+typedef __u32 __wsum;
+# 36 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h" 2
+
+
+
+typedef __kernel_gid32_t __gid_t;
+typedef __gid_t gid_t;
+typedef __kernel_uid32_t __uid_t;
+typedef __uid_t uid_t;
+typedef __kernel_pid_t __pid_t;
+typedef __pid_t pid_t;
+typedef uint32_t __id_t;
+typedef __id_t id_t;
+
+typedef unsigned long blkcnt_t;
+typedef unsigned long blksize_t;
+typedef __kernel_caddr_t caddr_t;
+typedef __kernel_clock_t clock_t;
+
+typedef __kernel_clockid_t __clockid_t;
+typedef __clockid_t clockid_t;
+
+typedef __kernel_daddr_t daddr_t;
+typedef unsigned long fsblkcnt_t;
+typedef unsigned long fsfilcnt_t;
+
+typedef __kernel_mode_t __mode_t;
+typedef __mode_t mode_t;
+
+typedef __kernel_key_t __key_t;
+typedef __key_t key_t;
+
+typedef __kernel_ino_t __ino_t;
+typedef __ino_t ino_t;
+
+typedef uint32_t __nlink_t;
+typedef __nlink_t nlink_t;
+
+typedef void* __timer_t;
+typedef __timer_t timer_t;
+
+typedef __kernel_suseconds_t __suseconds_t;
+typedef __suseconds_t suseconds_t;
+
+
+typedef uint32_t __useconds_t;
+typedef __useconds_t useconds_t;
+
+
+
+typedef uint32_t dev_t;
+
+
+
+
+
+typedef __kernel_time_t __time_t;
+typedef __time_t time_t;
+
+
+
+typedef __kernel_off_t off_t;
+typedef __kernel_loff_t loff_t;
+typedef loff_t off64_t;
+# 122 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h"
+typedef int32_t __socklen_t;
+
+
+
+
+typedef __socklen_t socklen_t;
+
+typedef __builtin_va_list __va_list;
+# 138 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h"
+typedef __kernel_ssize_t ssize_t;
+
+
+typedef unsigned int uint_t;
+typedef unsigned int uint;
+
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/sysmacros.h" 1
+# 36 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/sysmacros.h"
+static __inline__ int major(dev_t _dev)
+{
+  return (_dev >> 8) & 0xfff;
+}
+
+static __inline__ int minor(dev_t _dev)
+{
+  return (_dev & 0xff) | ((_dev >> 12) & 0xfff00);
+}
+
+static __inline__ dev_t makedev(int __ma, int __mi)
+{
+  return ((__ma & 0xfff) << 8) | (__mi & 0xff) | ((__mi & 0xfff00) << 12);
+}
+# 146 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/types.h" 2
+
+
+typedef unsigned char u_char;
+typedef unsigned short u_short;
+typedef unsigned int u_int;
+typedef unsigned long u_long;
+
+typedef uint32_t u_int32_t;
+typedef uint16_t u_int16_t;
+typedef uint8_t u_int8_t;
+typedef uint64_t u_int64_t;
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/time.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/time.h" 1
+# 25 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/time.h"
+struct timespec {
+ __kernel_time_t tv_sec;
+ long tv_nsec;
+
+};
+
+struct timeval {
+ __kernel_time_t tv_sec;
+
+ __kernel_suseconds_t tv_usec;
+};
+struct timezone {
+ int tz_minuteswest;
+
+ int tz_dsttime;
+};
+
+
+
+
+struct itimerspec {
+ struct timespec it_interval;
+ struct timespec it_value;
+
+};
+struct itimerval {
+ struct timeval it_interval;
+ struct timeval it_value;
+
+};
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/time.h" 2
+
+
+
+extern int gettimeofday(struct timeval *, struct timezone *);
+extern int settimeofday(const struct timeval *, const struct timezone *);
+
+extern int getitimer(int, struct itimerval *);
+extern int setitimer(int, const struct itimerval *, struct itimerval *);
+
+extern int utimes(const char *, const struct timeval *);
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\time.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\xlocale.h" 1
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\xlocale.h"
+struct __locale_t;
+typedef struct __locale_t* locale_t;
+# 35 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\time.h" 2
+
+
+
+
+
+extern char* tzname[] __attribute__((visibility ("default")));
+extern int daylight __attribute__((visibility ("default")));
+extern long int timezone __attribute__((visibility ("default")));
+
+struct sigevent;
+
+struct tm {
+  int tm_sec;
+  int tm_min;
+  int tm_hour;
+  int tm_mday;
+  int tm_mon;
+  int tm_year;
+  int tm_wday;
+  int tm_yday;
+  int tm_isdst;
+  long int tm_gmtoff;
+  const char* tm_zone;
+};
+
+
+
+extern time_t time(time_t*) __attribute__((visibility ("default")));
+extern int nanosleep(const struct timespec*, struct timespec*) __attribute__((visibility ("default")));
+
+extern char* asctime(const struct tm*) __attribute__((visibility ("default")));
+extern char* asctime_r(const struct tm*, char*) __attribute__((visibility ("default")));
+
+extern double difftime(time_t, time_t) __attribute__((visibility ("default")));
+extern time_t mktime(struct tm*) __attribute__((visibility ("default")));
+
+extern struct tm* localtime(const time_t*) __attribute__((visibility ("default")));
+extern struct tm* localtime_r(const time_t*, struct tm*) __attribute__((visibility ("default")));
+
+extern struct tm* gmtime(const time_t*) __attribute__((visibility ("default")));
+extern struct tm* gmtime_r(const time_t*, struct tm*) __attribute__((visibility ("default")));
+
+extern char* strptime(const char*, const char*, struct tm*) __attribute__((visibility ("default")));
+extern size_t strftime(char*, size_t, const char*, const struct tm*) __attribute__((visibility ("default")));
+extern size_t strftime_l(char *, size_t, const char *, const struct tm *, locale_t) __attribute__((visibility ("default")));
+
+extern char* ctime(const time_t*) __attribute__((visibility ("default")));
+extern char* ctime_r(const time_t*, char*) __attribute__((visibility ("default")));
+
+extern void tzset(void) __attribute__((visibility ("default")));
+
+extern clock_t clock(void) __attribute__((visibility ("default")));
+
+extern int clock_getres(clockid_t, struct timespec*) __attribute__((visibility ("default")));
+extern int clock_gettime(clockid_t, struct timespec*) __attribute__((visibility ("default")));
+extern int clock_nanosleep(clockid_t, int, const struct timespec*, struct timespec*) __attribute__((visibility ("default")));
+extern int clock_settime(clockid_t, const struct timespec*) __attribute__((visibility ("default")));
+
+extern int timer_create(int, struct sigevent*, timer_t*) __attribute__((visibility ("default")));
+extern int timer_delete(timer_t) __attribute__((visibility ("default")));
+extern int timer_settime(timer_t, int, const struct itimerspec*, struct itimerspec*) __attribute__((visibility ("default")));
+extern int timer_gettime(timer_t, struct itimerspec*) __attribute__((visibility ("default")));
+extern int timer_getoverrun(timer_t) __attribute__((visibility ("default")));
+
+
+extern time_t timelocal(struct tm*) __attribute__((visibility ("default")));
+extern time_t timegm(struct tm*) __attribute__((visibility ("default")));
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\errno.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\errno.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/errno.h" 1
+# 19 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/errno.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/errno.h" 1
+# 19 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/errno.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/errno.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/errno.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/errno-base.h" 1
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/errno.h" 2
+# 20 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/errno.h" 2
+# 20 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/errno.h" 2
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\errno.h" 2
+# 44 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\errno.h"
+extern volatile int* __errno(void) __attribute__((__const__));
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 2
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\limits.h" 1
+# 86 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\limits.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/limits.h" 1
+# 30 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/limits.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/limits.h" 1
+# 31 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/limits.h" 2
+# 87 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\limits.h" 2
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/syslimits.h" 1
+# 90 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\limits.h" 2
+# 35 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\string.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\string.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\string.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\malloc.h" 1
+# 26 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\malloc.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 27 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\malloc.h" 2
+
+
+
+extern void* malloc(size_t byte_count) __attribute__((malloc)) __attribute__((__warn_unused_result__)) __attribute__((alloc_size(1)));
+extern void* calloc(size_t item_count, size_t item_size) __attribute__((malloc)) __attribute__((__warn_unused_result__)) __attribute__((alloc_size(1,2)));
+extern void* realloc(void* p, size_t byte_count) __attribute__((__warn_unused_result__)) __attribute__((alloc_size(2)));
+extern void free(void* p);
+
+extern void* memalign(size_t alignment, size_t byte_count) __attribute__((malloc)) __attribute__((__warn_unused_result__)) __attribute__((alloc_size(2)));
+extern size_t malloc_usable_size(const void* p);
+
+
+
+struct mallinfo {
+  size_t arena;
+  size_t ordblks;
+  size_t smblks;
+  size_t hblks;
+  size_t hblkhd;
+  size_t usmblks;
+  size_t fsmblks;
+  size_t uordblks;
+  size_t fordblks;
+  size_t keepcost;
+};
+
+
+extern struct mallinfo mallinfo(void);
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\string.h" 2
+
+
+
+
+extern void* memccpy(void* __restrict, const void* __restrict, int, size_t);
+extern void* memchr(const void *, int, size_t) __attribute__((pure));
+extern void* memrchr(const void *, int, size_t) __attribute__((pure));
+extern int memcmp(const void *, const void *, size_t) __attribute__((pure));
+extern void* memcpy(void* __restrict, const void* __restrict, size_t);
+extern void* memmove(void *, const void *, size_t);
+extern void* memset(void *, int, size_t);
+extern void* memmem(const void *, size_t, const void *, size_t) __attribute__((pure));
+
+extern char* strchr(const char *, int) __attribute__((pure));
+extern char* __strchr_chk(const char *, int, size_t);
+
+extern char* strrchr(const char *, int) __attribute__((pure));
+extern char* __strrchr_chk(const char *, int, size_t);
+
+extern size_t strlen(const char *) __attribute__((pure));
+extern size_t __strlen_chk(const char *, size_t);
+extern int strcmp(const char *, const char *) __attribute__((pure));
+extern char* stpcpy(char* __restrict, const char* __restrict);
+extern char* strcpy(char* __restrict, const char* __restrict);
+extern char* strcat(char* __restrict, const char* __restrict);
+
+extern int strcasecmp(const char *, const char *) __attribute__((pure));
+extern int strncasecmp(const char *, const char *, size_t) __attribute__((pure));
+extern char* strdup(const char *);
+
+extern char* strstr(const char *, const char *) __attribute__((pure));
+extern char* strcasestr(const char *haystack, const char *needle) __attribute__((pure));
+extern char* strtok(char* __restrict, const char* __restrict);
+extern char* strtok_r(char* __restrict, const char* __restrict, char** __restrict);
+
+extern char* strerror(int);
+extern int strerror_r(int errnum, char *buf, size_t n);
+
+extern size_t strnlen(const char *, size_t) __attribute__((pure));
+extern char* strncat(char* __restrict, const char* __restrict, size_t);
+extern char* strndup(const char *, size_t);
+extern int strncmp(const char *, const char *, size_t) __attribute__((pure));
+extern char* stpncpy(char* __restrict, const char* __restrict, size_t);
+extern char* strncpy(char* __restrict, const char* __restrict, size_t);
+
+extern size_t strlcat(char* __restrict, const char* __restrict, size_t);
+extern size_t strlcpy(char* __restrict, const char* __restrict, size_t);
+
+extern size_t strcspn(const char *, const char *) __attribute__((pure));
+extern char* strpbrk(const char *, const char *) __attribute__((pure));
+extern char* strsep(char** __restrict, const char* __restrict);
+extern size_t strspn(const char *, const char *);
+
+extern char* strsignal(int sig);
+
+extern int strcoll(const char *, const char *) __attribute__((pure));
+extern size_t strxfrm(char* __restrict, const char* __restrict, size_t);
+
+extern int strcoll_l(const char *, const char *, locale_t) __attribute__((pure));
+extern size_t strxfrm_l(char* __restrict, const char* __restrict, size_t, locale_t);
+# 36 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 2
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/sigcontext.h" 1
+# 27 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/sigcontext.h"
+struct _fpx_sw_bytes {
+
+ __u32 magic1;
+ __u32 extended_size;
+ __u64 xstate_bv;
+ __u32 xstate_size;
+
+ __u32 padding[7];
+};
+
+struct _fpreg {
+
+ unsigned short significand[4];
+ unsigned short exponent;
+};
+struct _fpxreg {
+
+ unsigned short significand[4];
+ unsigned short exponent;
+ unsigned short padding[3];
+};
+
+struct _xmmreg {
+ unsigned long element[4];
+};
+struct _fpstate {
+
+ unsigned long cw;
+ unsigned long sw;
+ unsigned long tag;
+ unsigned long ipoff;
+
+ unsigned long cssel;
+ unsigned long dataoff;
+ unsigned long datasel;
+ struct _fpreg _st[8];
+
+ unsigned short status;
+ unsigned short magic;
+ unsigned long _fxsr_env[6];
+ unsigned long mxcsr;
+
+ unsigned long reserved;
+ struct _fpxreg _fxsr_st[8];
+ struct _xmmreg _xmm[8];
+ unsigned long padding1[44];
+
+ union {
+ unsigned long padding2[12];
+ struct _fpx_sw_bytes sw_reserved;
+ };
+
+};
+
+struct sigcontext {
+ unsigned short gs, __gsh;
+
+ unsigned short fs, __fsh;
+ unsigned short es, __esh;
+ unsigned short ds, __dsh;
+ unsigned long edi;
+
+ unsigned long esi;
+ unsigned long ebp;
+ unsigned long esp;
+ unsigned long ebx;
+
+ unsigned long edx;
+ unsigned long ecx;
+ unsigned long eax;
+ unsigned long trapno;
+
+ unsigned long err;
+ unsigned long eip;
+ unsigned short cs, __csh;
+ unsigned long eflags;
+
+ unsigned long esp_at_signal;
+ unsigned short ss, __ssh;
+ struct _fpstate *fpstate;
+ unsigned long oldmask;
+
+ unsigned long cr2;
+};
+# 176 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/sigcontext.h"
+struct _xsave_hdr {
+ __u64 xstate_bv;
+
+ __u64 reserved1[2];
+ __u64 reserved2[5];
+};
+struct _ymmh_state {
+
+ __u32 ymmh_space[64];
+};
+struct _xstate {
+ struct _fpstate fpstate;
+
+ struct _xsave_hdr xstate_hdr;
+ struct _ymmh_state ymmh;
+};
+# 38 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 2
+# 48 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/signal.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/signal.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/signal.h" 1
+# 26 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/signal.h"
+struct siginfo;
+
+
+typedef unsigned long sigset_t;
+# 91 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/signal.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/signal-defs.h" 1
+# 35 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/signal-defs.h"
+typedef void __signalfn_t(int);
+typedef __signalfn_t *__sighandler_t;
+typedef void __restorefn_t(void);
+
+typedef __restorefn_t *__sigrestore_t;
+# 92 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/signal.h" 2
+
+
+
+struct sigaction {
+ union {
+ __sighandler_t _sa_handler;
+
+ void (*_sa_sigaction)(int, struct siginfo *, void *);
+ } _u;
+ sigset_t sa_mask;
+ unsigned long sa_flags;
+
+ void (*sa_restorer)(void);
+};
+# 119 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/signal.h"
+typedef struct sigaltstack {
+ void *ss_sp;
+ int ss_flags;
+ size_t ss_size;
+
+} stack_t;
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/signal.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/siginfo.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/siginfo.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/siginfo.h" 1
+# 24 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/siginfo.h"
+typedef union sigval {
+ int sival_int;
+ void *sival_ptr;
+} sigval_t;
+# 54 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/siginfo.h"
+typedef struct siginfo {
+ int si_signo;
+ int si_errno;
+ int si_code;
+
+ union {
+ int _pad[((128 - (3 * sizeof(int))) / sizeof(int))];
+ struct {
+ __kernel_pid_t _pid;
+
+ __kernel_uid32_t _uid;
+ } _kill;
+ struct {
+ __kernel_timer_t _tid;
+
+ int _overrun;
+ char _pad[sizeof( __kernel_uid32_t) - sizeof(int)];
+ sigval_t _sigval;
+ int _sys_private;
+
+ } _timer;
+ struct {
+ __kernel_pid_t _pid;
+ __kernel_uid32_t _uid;
+
+ sigval_t _sigval;
+ } _rt;
+ struct {
+ __kernel_pid_t _pid;
+
+ __kernel_uid32_t _uid;
+ int _status;
+ __kernel_clock_t _utime;
+ __kernel_clock_t _stime;
+
+ } _sigchld;
+ struct {
+ void *_addr;
+
+
+
+
+ short _addr_lsb;
+ } _sigfault;
+
+ struct {
+ long _band;
+ int _fd;
+ } _sigpoll;
+
+ struct {
+ void *_call_addr;
+ int _syscall;
+ unsigned int _arch;
+
+ } _sigsys;
+ } _sifields;
+} siginfo_t;
+# 240 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm-generic/siginfo.h"
+typedef struct sigevent {
+ sigval_t sigev_value;
+ int sigev_signo;
+
+ int sigev_notify;
+ union {
+ int _pad[((64 - (sizeof(int) * 2 + sizeof(sigval_t))) / sizeof(int))];
+ int _tid;
+
+ struct {
+ void (*_function)(sigval_t);
+ void *_attribute;
+ } _sigev_thread;
+
+ } _sigev_un;
+} sigevent_t;
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/siginfo.h" 2
+# 23 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/signal.h" 2
+# 49 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 2
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/ucontext.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/ucontext.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 1
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/ucontext.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/user.h" 1
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/user.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/user.h" 2
+
+
+
+
+
+
+
+
+struct user_fpregs_struct {
+  long cwd;
+  long swd;
+  long twd;
+  long fip;
+  long fcs;
+  long foo;
+  long fos;
+  long st_space[20];
+};
+struct user_fpxregs_struct {
+  unsigned short cwd;
+  unsigned short swd;
+  unsigned short twd;
+  unsigned short fop;
+  long fip;
+  long fcs;
+  long foo;
+  long fos;
+  long mxcsr;
+  long reserved;
+  long st_space[32];
+  long xmm_space[32];
+  long padding[56];
+};
+struct user_regs_struct {
+  long ebx;
+  long ecx;
+  long edx;
+  long esi;
+  long edi;
+  long ebp;
+  long eax;
+  long xds;
+  long xes;
+  long xfs;
+  long xgs;
+  long orig_eax;
+  long eip;
+  long xcs;
+  long eflags;
+  long esp;
+  long xss;
+};
+struct user {
+  struct user_regs_struct regs;
+  int u_fpvalid;
+  struct user_fpregs_struct i387;
+  unsigned long int u_tsize;
+  unsigned long int u_dsize;
+  unsigned long int u_ssize;
+  unsigned long start_code;
+  unsigned long start_stack;
+  long int signal;
+  int reserved;
+  struct user_regs_struct* u_ar0;
+  struct user_fpregs_struct* u_fpstate;
+  unsigned long magic;
+  char u_comm[32];
+  int u_debugreg[8];
+};
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/ucontext.h" 2
+# 102 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/ucontext.h"
+enum {
+  REG_GS = 0,
+  REG_FS,
+  REG_ES,
+  REG_DS,
+  REG_EDI,
+  REG_ESI,
+  REG_EBP,
+  REG_ESP,
+  REG_EBX,
+  REG_EDX,
+  REG_ECX,
+  REG_EAX,
+  REG_TRAPNO,
+  REG_ERR,
+  REG_EIP,
+  REG_CS,
+  REG_EFL,
+  REG_UESP,
+  REG_SS,
+  NGREG
+};
+
+typedef int greg_t;
+typedef greg_t gregset_t[NGREG];
+
+struct _libc_fpreg {
+  unsigned short significand[4];
+  unsigned short exponent;
+};
+
+struct _libc_fpstate {
+  unsigned long cw;
+  unsigned long sw;
+  unsigned long tag;
+  unsigned long ipoff;
+  unsigned long cssel;
+  unsigned long dataoff;
+  unsigned long datasel;
+  struct _libc_fpreg _st[8];
+  unsigned long status;
+};
+
+typedef struct _libc_fpstate* fpregset_t;
+
+typedef struct {
+  gregset_t gregs;
+  fpregset_t fpregs;
+  unsigned long oldmask;
+  unsigned long cr2;
+} mcontext_t;
+
+typedef struct ucontext {
+  unsigned long uc_flags;
+  struct ucontext* uc_link;
+  stack_t uc_stack;
+  mcontext_t uc_mcontext;
+  sigset_t uc_sigmask;
+
+  uint32_t __padding_rt_sigset;
+  struct _libc_fpstate __fpregs_mem;
+} ucontext_t;
+# 52 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h" 2
+
+
+
+
+typedef int sig_atomic_t;
+# 70 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h"
+extern int __libc_current_sigrtmin(void);
+extern int __libc_current_sigrtmax(void);
+
+extern const char* const sys_siglist[];
+extern const char* const sys_signame[];
+
+typedef __sighandler_t sig_t;
+typedef __sighandler_t sighandler_t;
+# 106 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\signal.h"
+extern int sigaction(int, const struct sigaction*, struct sigaction*);
+
+extern sighandler_t signal(int, sighandler_t);
+
+extern int siginterrupt(int, int);
+
+extern int sigaddset(sigset_t*, int);
+extern int sigdelset(sigset_t*, int);
+extern int sigemptyset(sigset_t*);
+extern int sigfillset(sigset_t*);
+extern int sigismember(const sigset_t*, int);
+
+extern int sigpending(sigset_t*) __attribute__((__nonnull__ (1)));
+extern int sigprocmask(int, const sigset_t*, sigset_t*);
+extern int sigsuspend(const sigset_t*) __attribute__((__nonnull__ (1)));
+extern int sigwait(const sigset_t*, int*) __attribute__((__nonnull__ (1, 2)));
+
+extern int raise(int);
+extern int kill(pid_t, int);
+extern int killpg(int, int);
+
+extern int sigaltstack(const stack_t*, stack_t*);
+
+extern void psiginfo(const siginfo_t*, const char*);
+extern void psignal(int, const char*);
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sched.h" 1
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sched.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/sched.h" 1
+# 35 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sched.h" 2
+
+
+
+
+
+
+struct sched_param {
+  int __sched_priority;
+};
+
+
+extern int sched_setscheduler(pid_t, int, const struct sched_param*);
+extern int sched_getscheduler(pid_t);
+extern int sched_yield(void);
+extern int sched_get_priority_max(int);
+extern int sched_get_priority_min(int);
+extern int sched_setparam(pid_t, const struct sched_param*);
+extern int sched_getparam(pid_t, struct sched_param*);
+extern int sched_rr_get_interval(pid_t, struct timespec*);
+
+
+
+extern int clone(int (*)(void*), void*, int, void*, ...);
+extern int unshare(int);
+extern int sched_getcpu(void);
+extern int setns(int, int);
+# 73 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sched.h"
+typedef struct {
+  unsigned long int __bits[ 32 / (8 * sizeof(unsigned long int)) ];
+} cpu_set_t;
+
+extern int sched_setaffinity(pid_t pid, size_t setsize, const cpu_set_t* set);
+
+extern int sched_getaffinity(pid_t pid, size_t setsize, cpu_set_t* set);
+# 102 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sched.h"
+extern cpu_set_t* __sched_cpualloc(size_t count);
+extern void __sched_cpufree(cpu_set_t* set);
+# 147 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sched.h"
+extern int __sched_cpucount(size_t setsize, cpu_set_t* set);
+# 35 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h" 2
+# 44 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h"
+typedef struct {
+  int volatile value;
+
+
+
+} pthread_mutex_t;
+# 59 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h"
+enum {
+    PTHREAD_MUTEX_NORMAL = 0,
+    PTHREAD_MUTEX_RECURSIVE = 1,
+    PTHREAD_MUTEX_ERRORCHECK = 2,
+
+    PTHREAD_MUTEX_ERRORCHECK_NP = PTHREAD_MUTEX_ERRORCHECK,
+    PTHREAD_MUTEX_RECURSIVE_NP = PTHREAD_MUTEX_RECURSIVE,
+
+    PTHREAD_MUTEX_DEFAULT = PTHREAD_MUTEX_NORMAL
+};
+
+typedef struct {
+  int volatile value;
+
+
+
+} pthread_cond_t;
+
+
+
+typedef struct {
+  uint32_t flags;
+  void* stack_base;
+  size_t stack_size;
+  size_t guard_size;
+  int32_t sched_policy;
+  int32_t __sched_priority;
+
+
+
+} pthread_attr_t;
+
+typedef long pthread_mutexattr_t;
+typedef long pthread_condattr_t;
+
+typedef long pthread_rwlockattr_t;
+
+typedef struct {
+
+  pthread_mutex_t __unused_lock;
+  pthread_cond_t __unused_cond;
+
+  volatile int32_t state;
+  volatile int32_t writer_thread_id;
+  volatile int32_t pending_readers;
+  volatile int32_t pending_writers;
+  int32_t attr;
+
+
+
+  char __reserved[12];
+
+
+} pthread_rwlock_t;
+
+
+
+
+
+
+
+typedef int pthread_key_t;
+typedef long pthread_t;
+
+typedef volatile int pthread_once_t;
+# 144 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h"
+int pthread_atfork(void (*)(void), void (*)(void), void(*)(void));
+
+int pthread_attr_destroy(pthread_attr_t*) __attribute__((__nonnull__ (1)));
+int pthread_attr_getdetachstate(const pthread_attr_t*, int*) __attribute__((__nonnull__ (1, 2)));
+int pthread_attr_getguardsize(const pthread_attr_t*, size_t*) __attribute__((__nonnull__ (1, 2)));
+int pthread_attr_getschedparam(const pthread_attr_t*, struct sched_param*) __attribute__((__nonnull__ (1, 2)));
+int pthread_attr_getschedpolicy(const pthread_attr_t*, int*) __attribute__((__nonnull__ (1, 2)));
+int pthread_attr_getscope(const pthread_attr_t*, int*) __attribute__((__nonnull__ (1, 2)));
+int pthread_attr_getstack(const pthread_attr_t*, void**, size_t*) __attribute__((__nonnull__ (1, 2, 3)));
+int pthread_attr_getstacksize(const pthread_attr_t*, size_t*) __attribute__((__nonnull__ (1, 2)));
+int pthread_attr_init(pthread_attr_t*) __attribute__((__nonnull__ (1)));
+int pthread_attr_setdetachstate(pthread_attr_t*, int) __attribute__((__nonnull__ (1)));
+int pthread_attr_setguardsize(pthread_attr_t*, size_t) __attribute__((__nonnull__ (1)));
+int pthread_attr_setschedparam(pthread_attr_t*, const struct sched_param*) __attribute__((__nonnull__ (1, 2)));
+int pthread_attr_setschedpolicy(pthread_attr_t*, int) __attribute__((__nonnull__ (1)));
+int pthread_attr_setscope(pthread_attr_t*, int) __attribute__((__nonnull__ (1)));
+int pthread_attr_setstack(pthread_attr_t*, void*, size_t) __attribute__((__nonnull__ (1)));
+int pthread_attr_setstacksize(pthread_attr_t*, size_t stack_size) __attribute__((__nonnull__ (1)));
+
+int pthread_condattr_destroy(pthread_condattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_condattr_getclock(const pthread_condattr_t*, clockid_t*) __attribute__((__nonnull__ (1, 2)));
+int pthread_condattr_getpshared(const pthread_condattr_t*, int*) __attribute__((__nonnull__ (1, 2)));
+int pthread_condattr_init(pthread_condattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_condattr_setclock(pthread_condattr_t*, clockid_t) __attribute__((__nonnull__ (1)));
+int pthread_condattr_setpshared(pthread_condattr_t*, int) __attribute__((__nonnull__ (1)));
+
+int pthread_cond_broadcast(pthread_cond_t*) __attribute__((__nonnull__ (1)));
+int pthread_cond_destroy(pthread_cond_t*) __attribute__((__nonnull__ (1)));
+int pthread_cond_init(pthread_cond_t*, const pthread_condattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_cond_signal(pthread_cond_t*) __attribute__((__nonnull__ (1)));
+int pthread_cond_timedwait(pthread_cond_t*, pthread_mutex_t*, const struct timespec*) __attribute__((__nonnull__ (1, 2, 3)));
+int pthread_cond_wait(pthread_cond_t*, pthread_mutex_t*) __attribute__((__nonnull__ (1, 2)));
+
+int pthread_create(pthread_t*, pthread_attr_t const*, void *(*)(void*), void*) __attribute__((__nonnull__ (1, 3)));
+int pthread_detach(pthread_t);
+void pthread_exit(void*) __attribute__((__noreturn__));
+
+int pthread_equal(pthread_t, pthread_t);
+
+int pthread_getattr_np(pthread_t, pthread_attr_t*) __attribute__((__nonnull__ (2)));
+
+int pthread_getcpuclockid(pthread_t, clockid_t*) __attribute__((__nonnull__ (2)));
+
+int pthread_getschedparam(pthread_t, int*, struct sched_param*) __attribute__((__nonnull__ (2, 3)));
+
+void* pthread_getspecific(pthread_key_t);
+
+pid_t pthread_gettid_np(pthread_t);
+
+int pthread_join(pthread_t, void**);
+
+int pthread_key_create(pthread_key_t*, void (*)(void*)) __attribute__((__nonnull__ (1)));
+int pthread_key_delete(pthread_key_t);
+
+int pthread_kill(pthread_t, int);
+
+int pthread_mutexattr_destroy(pthread_mutexattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_mutexattr_getpshared(const pthread_mutexattr_t*, int*) __attribute__((__nonnull__ (1, 2)));
+int pthread_mutexattr_gettype(const pthread_mutexattr_t*, int*) __attribute__((__nonnull__ (1, 2)));
+int pthread_mutexattr_init(pthread_mutexattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_mutexattr_setpshared(pthread_mutexattr_t*, int) __attribute__((__nonnull__ (1)));
+int pthread_mutexattr_settype(pthread_mutexattr_t*, int) __attribute__((__nonnull__ (1)));
+
+int pthread_mutex_destroy(pthread_mutex_t*) __attribute__((__nonnull__ (1)));
+int pthread_mutex_init(pthread_mutex_t*, const pthread_mutexattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_mutex_lock(pthread_mutex_t*) __attribute__((__nonnull__ (1)));
+int pthread_mutex_timedlock(pthread_mutex_t*, const struct timespec*) __attribute__((__nonnull__ (1, 2)));
+int pthread_mutex_trylock(pthread_mutex_t*) __attribute__((__nonnull__ (1)));
+int pthread_mutex_unlock(pthread_mutex_t*) __attribute__((__nonnull__ (1)));
+
+int pthread_once(pthread_once_t*, void (*)(void)) __attribute__((__nonnull__ (1, 2)));
+
+int pthread_rwlockattr_destroy(pthread_rwlockattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_rwlockattr_getpshared(const pthread_rwlockattr_t*, int*) __attribute__((__nonnull__ (1, 2)));
+int pthread_rwlockattr_init(pthread_rwlockattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_rwlockattr_setpshared(pthread_rwlockattr_t*, int) __attribute__((__nonnull__ (1)));
+
+int pthread_rwlock_destroy(pthread_rwlock_t*) __attribute__((__nonnull__ (1)));
+int pthread_rwlock_init(pthread_rwlock_t*, const pthread_rwlockattr_t*) __attribute__((__nonnull__ (1)));
+int pthread_rwlock_rdlock(pthread_rwlock_t*) __attribute__((__nonnull__ (1)));
+int pthread_rwlock_timedrdlock(pthread_rwlock_t*, const struct timespec*) __attribute__((__nonnull__ (1, 2)));
+int pthread_rwlock_timedwrlock(pthread_rwlock_t*, const struct timespec*) __attribute__((__nonnull__ (1, 2)));
+int pthread_rwlock_tryrdlock(pthread_rwlock_t*) __attribute__((__nonnull__ (1)));
+int pthread_rwlock_trywrlock(pthread_rwlock_t*) __attribute__((__nonnull__ (1)));
+int pthread_rwlock_unlock(pthread_rwlock_t *rwlock) __attribute__((__nonnull__ (1)));
+int pthread_rwlock_wrlock(pthread_rwlock_t*) __attribute__((__nonnull__ (1)));
+
+pthread_t pthread_self(void) __attribute__((__const__));
+
+int pthread_setname_np(pthread_t, const char*) __attribute__((__nonnull__ (2)));
+
+int pthread_setschedparam(pthread_t, int, const struct sched_param*) __attribute__((__nonnull__ (3)));
+
+int pthread_setspecific(pthread_key_t, const void*);
+
+int pthread_sigmask(int, const sigset_t*, sigset_t*);
+
+typedef void (*__pthread_cleanup_func_t)(void*);
+
+typedef struct __pthread_cleanup_t {
+  struct __pthread_cleanup_t* __cleanup_prev;
+  __pthread_cleanup_func_t __cleanup_routine;
+  void* __cleanup_arg;
+} __pthread_cleanup_t;
+
+extern void __pthread_cleanup_push(__pthread_cleanup_t* c, __pthread_cleanup_func_t, void*);
+extern void __pthread_cleanup_pop(__pthread_cleanup_t*, int);
+# 273 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pthread.h"
+int pthread_cond_timedwait_monotonic_np(pthread_cond_t*, pthread_mutex_t*, const struct timespec*);
+int pthread_cond_timedwait_monotonic(pthread_cond_t*, pthread_mutex_t*, const struct timespec*);
+
+int pthread_cond_timedwait_relative_np(pthread_cond_t*, pthread_mutex_t*, const struct timespec*) ;
+
+int pthread_cond_timeout_np(pthread_cond_t*, pthread_mutex_t*, unsigned) ;
+
+int pthread_mutex_lock_timeout_np(pthread_mutex_t*, unsigned) __attribute__((deprecated("use pthread_mutex_timedlock instead")));
+# 35 "include/gc_pthread_redirects.h" 2
+
+
+
+
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\dlfcn.h" 1
+# 35 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\dlfcn.h"
+typedef struct {
+    const char *dli_fname;
+
+    void *dli_fbase;
+
+    const char *dli_sname;
+
+    void *dli_saddr;
+
+} Dl_info;
+
+extern void* dlopen(const char* filename, int flag);
+extern int dlclose(void* handle);
+extern const char* dlerror(void);
+extern void* dlsym(void* handle, const char* symbol);
+extern int dladdr(const void* addr, Dl_info *info);
+
+enum {
+
+
+
+  RTLD_NOW = 0,
+
+  RTLD_LAZY = 1,
+
+  RTLD_LOCAL = 0,
+
+
+
+  RTLD_GLOBAL = 2,
+
+  RTLD_NOLOAD = 4,
+};
+# 42 "include/gc_pthread_redirects.h" 2
+ extern void *GC_dlopen(const char * , int );
+
+
+
+
+
+
+
+      extern int GC_pthread_sigmask(int , const sigset_t *,
+                                    sigset_t * );
+# 60 "include/gc_pthread_redirects.h"
+  extern int GC_pthread_create(pthread_t *,
+                               const pthread_attr_t *,
+                               void *(*)(void *), void * );
+  extern int GC_pthread_join(pthread_t, void ** );
+  extern int GC_pthread_detach(pthread_t);
+# 1581 "include\\private/../gc.h" 2
+
+
+
+
+
+extern __attribute__((__malloc__)) void * GC_malloc_many(size_t );
+# 1598 "include\\private/../gc.h"
+typedef int ( * GC_has_static_roots_func)(
+                                        const char * ,
+                                        void * ,
+                                        size_t );
+
+
+
+
+
+extern void GC_register_has_static_roots_callback(
+                                        GC_has_static_roots_func);
+# 1755 "include\\private/../gc.h"
+extern void GC_set_force_unmap_on_gcollect(int);
+extern int GC_get_force_unmap_on_gcollect(void);
+# 1794 "include\\private/../gc.h"
+#pragma weak _etext
+#pragma weak __data_start
+#pragma weak __dso_handle
+ extern int _etext[], __data_start[], __dso_handle[];
+#pragma weak __end__
+ extern int __end__[], _end[];
+# 1929 "include\\private/../gc.h"
+extern void GC_win32_free_heap(void);
+# 53 "include\\private/gc_priv.h" 2
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdlib.h" 1
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdlib.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 34 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdlib.h" 2
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\alloca.h" 1
+# 36 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdlib.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\strings.h" 1
+# 56 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\strings.h"
+int ffs(int);
+int strcasecmp(const char *, const char *);
+int strncasecmp(const char *, const char *, size_t);
+# 37 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdlib.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\memory.h" 1
+# 38 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdlib.h" 2
+
+
+
+
+
+
+extern __attribute__((__noreturn__)) void abort(void);
+extern __attribute__((__noreturn__)) void exit(int);
+extern __attribute__((__noreturn__)) void _Exit(int);
+extern int atexit(void (*)(void));
+
+
+
+
+
+
+extern char* getenv(const char*);
+extern int putenv(char*);
+extern int setenv(const char*, const char*, int);
+extern int unsetenv(const char*);
+extern int clearenv(void);
+
+extern char* mkdtemp(char*);
+extern char* mktemp(char*) ;
+extern int mkstemp(char*);
+extern int mkstemp64(char*);
+
+extern long strtol(const char *, char **, int);
+extern long long strtoll(const char *, char **, int);
+extern unsigned long strtoul(const char *, char **, int);
+extern unsigned long long strtoull(const char *, char **, int);
+
+extern int posix_memalign(void **memptr, size_t alignment, size_t size);
+
+extern double atof(const char*);
+
+extern double strtod(const char*, char**) __attribute__((visibility ("default")));
+extern float strtof(const char*, char**) __attribute__((visibility ("default")));
+extern long double strtold(const char*, char**) __attribute__((visibility ("default")));
+
+extern long double strtold_l(const char *, char **, locale_t) __attribute__((visibility ("default")));
+extern long long strtoll_l(const char *, char **, int, locale_t) __attribute__((visibility ("default")));
+extern unsigned long long strtoull_l(const char *, char **, int, locale_t) __attribute__((visibility ("default")));
+
+extern int atoi(const char*) __attribute__((pure));
+extern long atol(const char*) __attribute__((pure));
+extern long long atoll(const char*) __attribute__((pure));
+
+extern int abs(int) __attribute__((__const__));
+extern long labs(long) __attribute__((__const__));
+extern long long llabs(long long) __attribute__((__const__));
+
+extern char * realpath(const char *path, char *resolved);
+extern int system(const char * string);
+
+extern void * bsearch(const void *key, const void *base0,
+ size_t nmemb, size_t size,
+ int (*compar)(const void *, const void *));
+
+extern void qsort(void *, size_t, size_t, int (*)(const void *, const void *));
+
+extern long jrand48(unsigned short *);
+extern long mrand48(void);
+extern long nrand48(unsigned short *);
+extern long lrand48(void);
+extern unsigned short *seed48(unsigned short*);
+extern double erand48(unsigned short xsubi[3]);
+extern double drand48(void);
+extern void srand48(long);
+
+unsigned int arc4random(void);
+unsigned int arc4random_uniform(unsigned int);
+void arc4random_buf(void*, size_t);
+
+
+
+int rand(void);
+int rand_r(unsigned int*);
+void srand(unsigned int);
+
+char* initstate(unsigned int, char*, size_t);
+long random(void);
+char* setstate(char*);
+void srandom(unsigned int);
+
+int getpt(void);
+int grantpt(int);
+int posix_openpt(int);
+char* ptsname(int) ;
+int ptsname_r(int, char*, size_t);
+int unlockpt(int);
+
+typedef struct {
+    int quot;
+    int rem;
+} div_t;
+
+extern div_t div(int, int) __attribute__((__const__));
+
+typedef struct {
+    long int quot;
+    long int rem;
+} ldiv_t;
+
+extern ldiv_t ldiv(long, long) __attribute__((__const__));
+
+typedef struct {
+    long long int quot;
+    long long int rem;
+} lldiv_t;
+
+extern lldiv_t lldiv(long long, long long) __attribute__((__const__));
+
+
+extern const char* getprogname(void);
+extern void setprogname(const char*);
+
+
+extern int mblen(const char *, size_t);
+extern size_t mbstowcs(wchar_t *, const char *, size_t);
+extern int mbtowc(wchar_t *, const char *, size_t);
+
+
+extern int wctomb(char *, wchar_t);
+extern size_t wcstombs(char *, const wchar_t *, size_t);
+
+extern size_t __ctype_get_mb_cur_max(void);
+# 56 "include\\private/gc_priv.h" 2
+
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 58 "include\\private/gc_priv.h" 2
+# 80 "include\\private/gc_priv.h"
+# 1 "include\\private/../gc_tiny_fl.h" 1
+# 81 "include\\private/gc_priv.h" 2
+
+
+
+# 1 "include\\private/../gc_mark.h" 1
+# 61 "include\\private/../gc_mark.h"
+  struct GC_ms_entry;
+
+
+
+typedef struct GC_ms_entry * (*GC_mark_proc)(GC_word * ,
+                                struct GC_ms_entry * ,
+                                struct GC_ms_entry * ,
+                                GC_word );
+# 119 "include\\private/../gc_mark.h"
+extern void * GC_least_plausible_heap_addr;
+extern void * GC_greatest_plausible_heap_addr;
+# 145 "include\\private/../gc_mark.h"
+extern struct GC_ms_entry * GC_mark_and_push(void * ,
+                                struct GC_ms_entry * ,
+                                struct GC_ms_entry * ,
+                                void ** );
+
+
+
+
+
+
+extern size_t GC_debug_header_size;
+# 167 "include\\private/../gc_mark.h"
+extern void ** GC_new_free_list(void);
+extern void ** GC_new_free_list_inner(void);
+
+
+extern unsigned GC_new_kind(void ** ,
+                            GC_word ,
+                            int ,
+                            int ) __attribute__((__nonnull__(1)));
+
+extern unsigned GC_new_kind_inner(void ** ,
+                            GC_word ,
+                            int ,
+                            int ) __attribute__((__nonnull__(1)));
+
+
+
+extern unsigned GC_new_proc(GC_mark_proc);
+extern unsigned GC_new_proc_inner(GC_mark_proc);
+# 196 "include\\private/../gc_mark.h"
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void * GC_generic_malloc(
+                                                            size_t ,
+                                                            int );
+
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+                                        GC_generic_malloc_ignore_off_page(
+                                            size_t , int );
+
+
+
+
+
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+                                        GC_generic_malloc_uncollectable(
+                                            size_t , int );
+
+
+
+
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+                                        GC_generic_or_special_malloc(
+                                            size_t , int );
+extern __attribute__((__malloc__)) __attribute__((__alloc_size__(1))) void *
+                                        GC_debug_generic_or_special_malloc(
+                                            size_t , int ,
+                                            const char * s, int i);
+# 233 "include\\private/../gc_mark.h"
+extern int GC_get_kind_and_size(const void *, size_t * )
+                                                        __attribute__((__nonnull__(1)));
+
+typedef void ( * GC_describe_type_fn)(void * ,
+                                                 char * );
+# 251 "include\\private/../gc_mark.h"
+extern void GC_register_describe_type_fn(int ,
+                                                 GC_describe_type_fn);
+
+
+
+
+
+
+
+extern void * GC_clear_stack(void *);
+# 270 "include\\private/../gc_mark.h"
+typedef void ( * GC_start_callback_proc)(void);
+extern void GC_set_start_callback(GC_start_callback_proc);
+extern GC_start_callback_proc GC_get_start_callback(void);
+
+
+
+extern int GC_is_marked(const void *) __attribute__((__nonnull__(1)));
+extern void GC_clear_mark_bit(const void *) __attribute__((__nonnull__(1)));
+extern void GC_set_mark_bit(const void *) __attribute__((__nonnull__(1)));
+
+
+
+
+
+extern void GC_push_all(char * , char * );
+extern void GC_push_all_eager(char * , char * );
+extern void GC_push_conditional(char * , char * ,
+                                        int );
+extern void GC_push_finalizer_structures(void);
+
+
+
+
+
+typedef void ( * GC_push_other_roots_proc)(void);
+extern void GC_set_push_other_roots(GC_push_other_roots_proc);
+extern GC_push_other_roots_proc GC_get_push_other_roots(void);
+
+
+
+
+typedef void ( *GC_reachable_object_proc)(void * ,
+                                                size_t ,
+                                                void * );
+extern void GC_enumerate_reachable_objects_inner(
+                                GC_reachable_object_proc,
+                                void * ) __attribute__((__nonnull__(1)));
+
+extern int GC_is_tmp_root(void *);
+
+extern void GC_print_trace(GC_word );
+extern void GC_print_trace_inner(GC_word );
+# 85 "include\\private/gc_priv.h" 2
+
+
+typedef GC_word word;
+typedef GC_signed_word signed_word;
+typedef unsigned int unsigned32;
+
+typedef int GC_bool;
+
+
+
+typedef char * ptr_t;
+# 115 "include\\private/gc_priv.h"
+# 1 "include\\private/gcconfig.h" 1
+# 1409 "include\\private/gcconfig.h"
+             extern int _end[];
+# 2713 "include\\private/gcconfig.h"
+#pragma weak __end__
+ extern int __end__[];
+# 2727 "include\\private/gcconfig.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\unistd.h" 1
+# 31 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\unistd.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\unistd.h" 2
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/select.h" 1
+# 44 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/select.h"
+typedef struct {
+  unsigned long fds_bits[(1024/(8 * sizeof(unsigned long)))];
+} fd_set;
+# 67 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/select.h"
+extern int select(int, fd_set*, fd_set*, fd_set*, struct timeval*);
+extern int pselect(int, fd_set*, fd_set*, fd_set*, const struct timespec*, const sigset_t*);
+# 35 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\unistd.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/sysconf.h" 1
+# 132 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\sys/sysconf.h"
+long sysconf(int name);
+# 36 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\unistd.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pathconf.h" 1
+# 58 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\pathconf.h"
+extern long fpathconf(int fildes, int name);
+extern long pathconf(const char *path, int name);
+# 37 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\unistd.h" 2
+# 50 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\unistd.h"
+extern char** environ;
+
+extern __attribute__((__noreturn__)) void _exit(int);
+
+extern pid_t fork(void);
+extern pid_t vfork(void);
+extern pid_t getpid(void);
+extern pid_t gettid(void) __attribute__((__const__));
+extern pid_t getpgid(pid_t);
+extern int setpgid(pid_t, pid_t);
+extern pid_t getppid(void);
+extern pid_t getpgrp(void);
+extern int setpgrp(void);
+extern pid_t getsid(pid_t);
+extern pid_t setsid(void);
+
+extern int execv(const char *, char * const *);
+extern int execvp(const char *, char * const *);
+extern int execvpe(const char *, char * const *, char * const *);
+extern int execve(const char *, char * const *, char * const *);
+extern int execl(const char *, const char *, ...);
+extern int execlp(const char *, const char *, ...);
+extern int execle(const char *, const char *, ...);
+
+extern int nice(int);
+
+extern int setuid(uid_t);
+extern uid_t getuid(void);
+extern int seteuid(uid_t);
+extern uid_t geteuid(void);
+extern int setgid(gid_t);
+extern gid_t getgid(void);
+extern int setegid(gid_t);
+extern gid_t getegid(void);
+extern int getgroups(int, gid_t *);
+extern int setgroups(size_t, const gid_t *);
+extern int setreuid(uid_t, uid_t);
+extern int setregid(gid_t, gid_t);
+extern int setresuid(uid_t, uid_t, uid_t);
+extern int setresgid(gid_t, gid_t, gid_t);
+extern int getresuid(uid_t *ruid, uid_t *euid, uid_t *suid);
+extern int getresgid(gid_t *rgid, gid_t *egid, gid_t *sgid);
+extern char* getlogin(void);
+
+
+
+
+
+
+
+extern int access(const char*, int);
+extern int faccessat(int, const char*, int, int);
+extern int link(const char*, const char*);
+extern int linkat(int, const char*, int, const char*, int);
+extern int unlink(const char*);
+extern int unlinkat(int, const char*, int);
+extern int chdir(const char *);
+extern int fchdir(int);
+extern int rmdir(const char *);
+extern int pipe(int *);
+
+extern int pipe2(int *, int);
+
+extern int chroot(const char *);
+extern int symlink(const char*, const char*);
+extern int symlinkat(const char*, int, const char*);
+extern ssize_t readlink(const char*, char*, size_t);
+extern ssize_t readlinkat(int, const char*, char*, size_t);
+extern int chown(const char *, uid_t, gid_t);
+extern int fchown(int, uid_t, gid_t);
+extern int fchownat(int, const char*, uid_t, gid_t, int);
+extern int lchown(const char *, uid_t, gid_t);
+extern int truncate(const char *, off_t);
+extern int truncate64(const char *, off64_t);
+extern char *getcwd(char *, size_t);
+
+extern int sync(void);
+
+extern int close(int);
+extern off_t lseek(int, off_t, int);
+extern off64_t lseek64(int, off64_t, int);
+
+extern ssize_t read(int, void *, size_t);
+extern ssize_t write(int, const void *, size_t);
+extern ssize_t pread(int, void *, size_t, off_t);
+extern ssize_t pread64(int, void *, size_t, off64_t);
+extern ssize_t pwrite(int, const void *, size_t, off_t);
+extern ssize_t pwrite64(int, const void *, size_t, off64_t);
+
+extern int dup(int);
+extern int dup2(int, int);
+
+extern int dup3(int, int, int);
+
+extern int fcntl(int, int, ...);
+extern int ioctl(int, int, ...);
+extern int flock(int, int);
+extern int fsync(int);
+extern int fdatasync(int);
+extern int ftruncate(int, off_t);
+extern int ftruncate64(int, off64_t);
+
+extern int pause(void);
+extern unsigned int alarm(unsigned int);
+extern unsigned int sleep(unsigned int);
+extern int usleep(useconds_t);
+
+extern int gethostname(char *, size_t);
+
+extern void *__brk(void *);
+extern int brk(void *);
+extern void *sbrk(ptrdiff_t);
+
+extern int getopt(int, char * const *, const char *);
+extern char *optarg;
+extern int optind, opterr, optopt;
+
+extern int isatty(int);
+extern char* ttyname(int) ;
+extern int ttyname_r(int, char*, size_t);
+
+extern int acct(const char* filepath);
+
+int getpagesize(void);
+
+long sysconf(int);
+
+extern int daemon(int, int);
+
+
+
+
+
+
+extern pid_t tcgetpgrp(int fd);
+extern int tcsetpgrp(int fd, pid_t _pid);
+# 2728 "include\\private/gcconfig.h" 2
+# 2959 "include\\private/gcconfig.h"
+  extern ptr_t GC_data_start;
+# 3227 "include\\private/gcconfig.h"
+        struct hblk;
+# 3275 "include\\private/gcconfig.h"
+    ptr_t GC_unix_get_mem(size_t bytes);
+# 116 "include\\private/gc_priv.h" 2
+# 155 "include\\private/gc_priv.h"
+# 1 "include\\private/gc_hdrs.h" 1
+# 18 "include\\private/gc_hdrs.h"
+typedef struct hblkhdr hdr;
+# 71 "include\\private/gc_hdrs.h"
+typedef struct hce {
+  word block_addr;
+  hdr * hce_hdr;
+} hdr_cache_entry;
+# 96 "include\\private/gc_hdrs.h"
+           hdr * GC_header_cache_miss(ptr_t p, hdr_cache_entry *hce);
+# 118 "include\\private/gc_hdrs.h"
+typedef struct bi {
+    hdr * index[(1 << 10)];
+# 129 "include\\private/gc_hdrs.h"
+    struct bi * asc_link;
+
+    struct bi * desc_link;
+    word key;
+
+
+
+} bottom_index;
+# 156 "include\\private/gc_priv.h" 2
+# 232 "include\\private/gc_priv.h"
+# 1 "include\\private/gc_locks.h" 1
+# 32 "include\\private/gc_locks.h"
+# 1 "include\\private/gc_atomic_ops.h" 1
+# 92 "include\\private/gc_atomic_ops.h"
+# 1 "libatomic_ops\\src\\atomic_ops.h" 1
+# 26 "libatomic_ops\\src\\atomic_ops.h"
+# 1 "libatomic_ops\\src/atomic_ops/ao_version.h" 1
+# 27 "libatomic_ops\\src\\atomic_ops.h" 2
+
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\assert.h" 1
+# 63 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\assert.h"
+       void __assert(const char *, int, const char *) __attribute__((__noreturn__));
+       void __assert2(const char *, int, const char *, const char *) __attribute__((__noreturn__));
+# 31 "libatomic_ops\\src\\atomic_ops.h" 2
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 32 "libatomic_ops\\src\\atomic_ops.h" 2
+# 233 "libatomic_ops\\src\\atomic_ops.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h" 1
+# 24 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_aligned_atomic_load_store.h" 1
+# 31 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_aligned_atomic_load_store.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_load_store.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_load_store.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_only_load.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_only_load.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/atomic_load.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/atomic_load.h"
+static __inline size_t
+AO_load(const volatile size_t *addr)
+{
+
+    ((((size_t)addr & (sizeof(*addr) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/atomic_load.h", 31, __func__, "((size_t)addr & (sizeof(*addr) - 1)) == 0"));
+
+
+
+  return *(const size_t *)addr;
+}
+# 28 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_only_load.h" 2
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/char_atomic_load.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/char_atomic_load.h"
+static __inline unsigned char
+AO_char_load(const volatile unsigned char *addr)
+{
+
+
+
+
+
+  return *(const unsigned char *)addr;
+}
+# 29 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_only_load.h" 2
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/short_atomic_load.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/short_atomic_load.h"
+static __inline unsigned short
+AO_short_load(const volatile unsigned short *addr)
+{
+
+    ((((size_t)addr & (sizeof(*addr) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/short_atomic_load.h", 31, __func__, "((size_t)addr & (sizeof(*addr) - 1)) == 0"));
+
+
+
+  return *(const unsigned short *)addr;
+}
+# 30 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_only_load.h" 2
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/int_atomic_load.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/int_atomic_load.h"
+static __inline unsigned
+AO_int_load(const volatile unsigned *addr)
+{
+
+    ((((size_t)addr & (sizeof(*addr) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/int_atomic_load.h", 31, __func__, "((size_t)addr & (sizeof(*addr) - 1)) == 0"));
+
+
+
+  return *(const unsigned *)addr;
+}
+# 31 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_only_load.h" 2
+# 28 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_load_store.h" 2
+
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/atomic_store.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/atomic_store.h"
+static __inline void
+AO_store(volatile size_t *addr, size_t new_val)
+{
+
+    ((((size_t)addr & (sizeof(*addr) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/atomic_store.h", 31, __func__, "((size_t)addr & (sizeof(*addr) - 1)) == 0"));
+
+  *(size_t *)addr = new_val;
+}
+# 30 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_load_store.h" 2
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/char_atomic_store.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/char_atomic_store.h"
+static __inline void
+AO_char_store(volatile unsigned char *addr, unsigned char new_val)
+{
+
+
+
+  *(unsigned char *)addr = new_val;
+}
+# 31 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_load_store.h" 2
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/short_atomic_store.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/short_atomic_store.h"
+static __inline void
+AO_short_store(volatile unsigned short *addr, unsigned short new_val)
+{
+
+    ((((size_t)addr & (sizeof(*addr) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/short_atomic_store.h", 31, __func__, "((size_t)addr & (sizeof(*addr) - 1)) == 0"));
+
+  *(unsigned short *)addr = new_val;
+}
+# 32 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_load_store.h" 2
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/int_atomic_store.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/int_atomic_store.h"
+static __inline void
+AO_int_store(volatile unsigned *addr, unsigned new_val)
+{
+
+    ((((size_t)addr & (sizeof(*addr) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/int_atomic_store.h", 31, __func__, "((size_t)addr & (sizeof(*addr) - 1)) == 0"));
+
+  *(unsigned *)addr = new_val;
+}
+# 33 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_atomic_load_store.h" 2
+# 32 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../all_aligned_atomic_load_store.h" 2
+# 25 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h" 2
+
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../test_and_set_t_is_char.h" 1
+# 30 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../test_and_set_t_is_char.h"
+typedef enum {AO_BYTE_TS_clear = 0, AO_BYTE_TS_set = 0xff} AO_BYTE_TS_val;
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h" 2
+
+
+
+
+
+
+
+  static __inline void
+  AO_nop_full(void)
+  {
+    __asm__ __volatile__("mfence" : : : "memory");
+  }
+# 52 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h"
+  static __inline size_t
+  AO_fetch_and_add_full (volatile size_t *p, size_t incr)
+  {
+    size_t result;
+
+    __asm__ __volatile__ ("lock; xadd %0, %1" :
+                        "=r" (result), "=m" (*p) : "0" (incr), "m" (*p)
+                        : "memory");
+    return result;
+  }
+
+
+
+static __inline unsigned char
+AO_char_fetch_and_add_full (volatile unsigned char *p, unsigned char incr)
+{
+  unsigned char result;
+
+  __asm__ __volatile__ ("lock; xaddb %0, %1" :
+                        "=q" (result), "=m" (*p) : "0" (incr), "m" (*p)
+                        : "memory");
+  return result;
+}
+
+
+static __inline unsigned short
+AO_short_fetch_and_add_full (volatile unsigned short *p, unsigned short incr)
+{
+  unsigned short result;
+
+  __asm__ __volatile__ ("lock; xaddw %0, %1" :
+                        "=r" (result), "=m" (*p) : "0" (incr), "m" (*p)
+                        : "memory");
+  return result;
+}
+
+
+
+
+  static __inline void
+  AO_and_full (volatile size_t *p, size_t value)
+  {
+    __asm__ __volatile__ ("lock; and %1, %0" :
+                        "=m" (*p) : "r" (value), "m" (*p)
+                        : "memory");
+  }
+
+
+  static __inline void
+  AO_or_full (volatile size_t *p, size_t value)
+  {
+    __asm__ __volatile__ ("lock; or %1, %0" :
+                        "=m" (*p) : "r" (value), "m" (*p)
+                        : "memory");
+  }
+
+
+  static __inline void
+  AO_xor_full (volatile size_t *p, size_t value)
+  {
+    __asm__ __volatile__ ("lock; xor %1, %0" :
+                        "=m" (*p) : "r" (value), "m" (*p)
+                        : "memory");
+  }
+
+
+
+
+
+
+
+static __inline AO_BYTE_TS_val
+AO_test_and_set_full(volatile unsigned char *addr)
+{
+  unsigned char oldval;
+
+  __asm__ __volatile__ ("xchgb %0, %1"
+                        : "=q" (oldval), "=m" (*addr)
+                        : "0" ((unsigned char)0xff), "m" (*addr)
+                        : "memory");
+  return (AO_BYTE_TS_val)oldval;
+}
+
+
+
+
+  static __inline int
+  AO_compare_and_swap_full(volatile size_t *addr, size_t old, size_t new_val)
+  {
+
+
+
+
+
+
+
+      char result;
+      __asm__ __volatile__ ("lock; cmpxchg %3, %0; setz %1"
+                        : "=m" (*addr), "=a" (result)
+                        : "m" (*addr), "r" (new_val), "a" (old)
+                        : "memory");
+      return (int)result;
+
+  }
+
+
+
+static __inline size_t
+AO_fetch_compare_and_swap_full(volatile size_t *addr, size_t old_val,
+                               size_t new_val)
+{
+
+
+
+
+    size_t fetched_val;
+    __asm__ __volatile__ ("lock; cmpxchg %3, %4"
+                        : "=a" (fetched_val), "=m" (*addr)
+                        : "a" (old_val), "r" (new_val), "m" (*addr)
+                        : "memory");
+    return fetched_val;
+
+}
+
+
+
+
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../standard_ao_double_t.h" 1
+# 38 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../standard_ao_double_t.h"
+  typedef unsigned long long double_ptr_storage;
+
+
+
+typedef union {
+    struct { size_t AO_v1; size_t AO_v2; } AO_parts;
+
+
+    double_ptr_storage AO_whole;
+
+
+
+
+} AO_double_t;
+
+
+
+struct AO_double_t_size_static_assert {
+    char dummy[sizeof(AO_double_t) == 2 * sizeof(size_t) ? 1 : -1];
+};
+# 179 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h" 2
+
+
+
+
+
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/double_atomic_load_store.h" 1
+# 27 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/double_atomic_load_store.h"
+static __inline AO_double_t
+AO_double_load(const volatile AO_double_t *addr)
+{
+  AO_double_t result;
+
+
+    ((((size_t)addr & (sizeof(AO_double_t) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/double_atomic_load_store.h", 33, __func__, "((size_t)addr & (sizeof(AO_double_t) - 1)) == 0"));
+
+
+  result.AO_whole = ((const AO_double_t *)addr)->AO_whole;
+  return result;
+}
+
+
+static __inline void
+AO_double_store(volatile AO_double_t *addr, AO_double_t new_val)
+{
+
+    ((((size_t)addr & (sizeof(AO_double_t) - 1)) == 0) ? (void)0 : __assert2("libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/double_atomic_load_store.h", 45, __func__, "((size_t)addr & (sizeof(AO_double_t) - 1)) == 0"));
+
+  ((AO_double_t *)addr)->AO_whole = new_val.AO_whole;
+}
+# 185 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h" 2
+
+
+
+  static __inline int
+  AO_compare_double_and_swap_double_full(volatile AO_double_t *addr,
+                                         size_t old_val1, size_t old_val2,
+                                         size_t new_val1, size_t new_val2)
+  {
+    char result;
+
+      size_t saved_ebx;
+# 220 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h"
+        size_t saved_edi;
+        __asm__ __volatile__("mov %%edi, %3\n\t"
+                             "mov %%ebx, %2\n\t"
+                             "lea %0, %%edi\n\t"
+                             "mov %8, %%ebx\n\t"
+                             "lock; cmpxchg8b (%%edi)\n\t"
+                             "mov %2, %%ebx\n\t"
+                             "mov %3, %%edi\n\t"
+                             "setz %1"
+                        : "=m" (*addr), "=a" (result),
+                          "=m" (saved_ebx), "=m" (saved_edi)
+                        : "m" (*addr), "d" (old_val2), "a" (old_val1),
+                          "c" (new_val2), "m" (new_val1) : "memory");
+# 244 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h"
+    return (int) result;
+  }
+# 360 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../ordered_except_wr.h" 1
+# 30 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../ordered_except_wr.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../read_ordered.h" 1
+# 30 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../read_ordered.h"
+static __inline void
+AO_nop_read(void)
+{
+  __asm__ __volatile__("" : : : "memory");
+}
+
+
+
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/ordered_loads_only.h" 1
+# 38 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../read_ordered.h" 2
+# 31 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../ordered_except_wr.h" 2
+
+static __inline void
+AO_nop_write(void)
+{
+
+  __asm__ __volatile__("" : : : "memory");
+
+
+}
+
+
+
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../loadstore/ordered_stores_only.h" 1
+# 43 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/../ordered_except_wr.h" 2
+# 361 "libatomic_ops\\src/atomic_ops/sysdeps/gcc/x86.h" 2
+# 234 "libatomic_ops\\src\\atomic_ops.h" 2
+# 392 "libatomic_ops\\src\\atomic_ops.h"
+# 1 "libatomic_ops\\src/atomic_ops/generalize.h" 1
+# 176 "libatomic_ops\\src/atomic_ops/generalize.h"
+  static __inline void AO_nop(void) {}
+# 303 "libatomic_ops\\src/atomic_ops/generalize.h"
+# 1 "libatomic_ops\\src/atomic_ops/generalize-small.h" 1
+# 295 "libatomic_ops\\src/atomic_ops/generalize-small.h"
+  static __inline unsigned char
+  AO_char_load_read(const volatile unsigned char *addr)
+  {
+    unsigned char result = AO_char_load(addr);
+
+    AO_nop_read();
+    return result;
+  }
+# 815 "libatomic_ops\\src/atomic_ops/generalize-small.h"
+  static __inline unsigned short
+  AO_short_load_read(const volatile unsigned short *addr)
+  {
+    unsigned short result = AO_short_load(addr);
+
+    AO_nop_read();
+    return result;
+  }
+# 1335 "libatomic_ops\\src/atomic_ops/generalize-small.h"
+  static __inline unsigned
+  AO_int_load_read(const volatile unsigned *addr)
+  {
+    unsigned result = AO_int_load(addr);
+
+    AO_nop_read();
+    return result;
+  }
+# 1855 "libatomic_ops\\src/atomic_ops/generalize-small.h"
+  static __inline size_t
+  AO_load_read(const volatile size_t *addr)
+  {
+    size_t result = AO_load(addr);
+
+    AO_nop_read();
+    return result;
+  }
+# 2375 "libatomic_ops\\src/atomic_ops/generalize-small.h"
+  static __inline AO_double_t
+  AO_double_load_read(const volatile AO_double_t *addr)
+  {
+    AO_double_t result = AO_double_load(addr);
+
+    AO_nop_read();
+    return result;
+  }
+# 304 "libatomic_ops\\src/atomic_ops/generalize.h" 2
+
+# 1 "libatomic_ops\\src/atomic_ops/generalize-arithm.h" 1
+# 2689 "libatomic_ops\\src/atomic_ops/generalize-arithm.h"
+  static __inline size_t
+  AO_fetch_and_add_acquire(volatile size_t *addr, size_t incr)
+  {
+    size_t old;
+
+    do
+      {
+        old = *(size_t *)addr;
+      }
+    while (__builtin_expect(!AO_compare_and_swap_full(addr, old, old + incr), 0));
+
+    return old;
+  }
+
+
+
+
+
+  static __inline size_t
+  AO_fetch_and_add_release(volatile size_t *addr, size_t incr)
+  {
+    size_t old;
+
+    do
+      {
+        old = *(size_t *)addr;
+      }
+    while (__builtin_expect(!AO_compare_and_swap_full(addr, old, old + incr), 0));
+
+    return old;
+  }
+
+
+
+
+
+  static __inline size_t
+  AO_fetch_and_add(volatile size_t *addr, size_t incr)
+  {
+    size_t old;
+
+    do
+      {
+        old = *(size_t *)addr;
+      }
+    while (__builtin_expect(!AO_compare_and_swap_full(addr, old, old + incr), 0));
+
+    return old;
+  }
+# 306 "libatomic_ops\\src/atomic_ops/generalize.h" 2
+# 583 "libatomic_ops\\src/atomic_ops/generalize.h"
+  static __inline int
+  AO_double_compare_and_swap(volatile AO_double_t *addr,
+                             AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,old_val.AO_parts.AO_v1,old_val.AO_parts.AO_v2,new_val.AO_parts.AO_v1,new_val.AO_parts.AO_v2);
+
+
+  }
+
+
+
+
+  static __inline int
+  AO_double_compare_and_swap_release(volatile AO_double_t *addr,
+                                     AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,old_val.AO_parts.AO_v1,old_val.AO_parts.AO_v2,new_val.AO_parts.AO_v1,new_val.AO_parts.AO_v2);
+
+
+  }
+
+
+
+
+  static __inline int
+  AO_double_compare_and_swap_acquire(volatile AO_double_t *addr,
+                                     AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,old_val.AO_parts.AO_v1,old_val.AO_parts.AO_v2,new_val.AO_parts.AO_v1,new_val.AO_parts.AO_v2);
+
+
+  }
+
+
+
+
+  static __inline int
+  AO_double_compare_and_swap_read(volatile AO_double_t *addr,
+                                  AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,old_val.AO_parts.AO_v1,old_val.AO_parts.AO_v2,new_val.AO_parts.AO_v1,new_val.AO_parts.AO_v2);
+
+
+  }
+
+
+
+
+  static __inline int
+  AO_double_compare_and_swap_write(volatile AO_double_t *addr,
+                                   AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,old_val.AO_parts.AO_v1,old_val.AO_parts.AO_v2,new_val.AO_parts.AO_v1,new_val.AO_parts.AO_v2);
+
+
+  }
+
+
+
+
+  static __inline int
+  AO_double_compare_and_swap_release_write(volatile AO_double_t *addr,
+                                AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,old_val.AO_parts.AO_v1,old_val.AO_parts.AO_v2,new_val.AO_parts.AO_v1,new_val.AO_parts.AO_v2);
+
+
+  }
+
+
+
+
+  static __inline int
+  AO_double_compare_and_swap_acquire_read(volatile AO_double_t *addr,
+                                AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,old_val.AO_parts.AO_v1,old_val.AO_parts.AO_v2,new_val.AO_parts.AO_v1,new_val.AO_parts.AO_v2);
+
+
+  }
+
+
+
+
+  static __inline int
+  AO_double_compare_and_swap_full(volatile AO_double_t *addr,
+                                  AO_double_t old_val, AO_double_t new_val)
+  {
+    return AO_compare_double_and_swap_double_full(addr,
+                                          old_val.AO_parts.AO_v1, old_val.AO_parts.AO_v2,
+                                          new_val.AO_parts.AO_v1, new_val.AO_parts.AO_v2);
+  }
+# 393 "libatomic_ops\\src\\atomic_ops.h" 2
+# 402 "libatomic_ops\\src\\atomic_ops.h"
+# 1 "libatomic_ops\\src/atomic_ops/sysdeps/ao_t_is_int.h" 1
+# 403 "libatomic_ops\\src\\atomic_ops.h" 2
+
+
+
+
+
+
+
+# 1 "libatomic_ops\\src/atomic_ops/generalize.h" 1
+# 303 "libatomic_ops\\src/atomic_ops/generalize.h"
+# 1 "libatomic_ops\\src/atomic_ops/generalize-small.h" 1
+# 304 "libatomic_ops\\src/atomic_ops/generalize.h" 2
+
+# 1 "libatomic_ops\\src/atomic_ops/generalize-arithm.h" 1
+# 306 "libatomic_ops\\src/atomic_ops/generalize.h" 2
+# 411 "libatomic_ops\\src\\atomic_ops.h" 2
+# 93 "include\\private/gc_atomic_ops.h" 2
+# 33 "include\\private/gc_locks.h" 2
+# 125 "include\\private/gc_locks.h"
+      extern volatile unsigned char GC_allocate_lock;
+               void GC_lock(void);
+# 191 "include\\private/gc_locks.h"
+       extern volatile GC_bool GC_collecting;
+
+
+
+              void GC_lock(void);
+# 205 "include\\private/gc_locks.h"
+     extern GC_bool GC_need_to_lock;
+# 233 "include\\private/gc_priv.h" 2
+# 306 "include\\private/gc_priv.h"
+           void GC_notify_or_invoke_finalizers(void);
+
+
+
+
+
+
+           void GC_finalize(void);
+
+
+
+
+
+
+
+             void GC_process_togglerefs(void);
+
+
+
+             void GC_print_finalization_stats(void);
+# 502 "include\\private/gc_priv.h"
+               void GC_stop_world(void);
+               void GC_start_world(void);
+# 514 "include\\private/gc_priv.h"
+  extern GC_on_thread_event_proc GC_on_thread_event;
+
+
+
+
+
+
+    extern GC_abort_func GC_on_abort;
+# 589 "include\\private/gc_priv.h"
+extern GC_warn_proc GC_current_warn_proc;
+# 901 "include\\private/gc_priv.h"
+typedef word page_hash_table[(((word)1 << 18) >> ((word)5))];
+# 940 "include\\private/gc_priv.h"
+  typedef size_t counter_t;
+
+
+
+
+
+
+union word_ptr_ao_u {
+  word w;
+  signed_word sw;
+  void *vp;
+
+    volatile size_t ao;
+
+};
+
+
+
+
+struct hblkhdr {
+    struct hblk * hb_next;
+
+
+    struct hblk * hb_prev;
+    struct hblk * hb_block;
+    unsigned char hb_obj_kind;
+
+
+
+    unsigned char hb_flags;
+# 991 "include\\private/gc_priv.h"
+    unsigned short hb_last_reclaimed;
+# 1005 "include\\private/gc_priv.h"
+    size_t hb_sz;
+
+
+
+
+    word hb_descr;
+
+
+      unsigned short * hb_map;
+
+
+
+    counter_t hb_n_marks;
+# 1057 "include\\private/gc_priv.h"
+      word hb_marks[((((size_t)(1 << 12))/8)/32 + 1)];
+
+};
+# 1072 "include\\private/gc_priv.h"
+struct hblk {
+    char hb_body[((size_t)(1 << 12))];
+};
+# 1108 "include\\private/gc_priv.h"
+struct exclusion {
+    ptr_t e_start;
+    ptr_t e_end;
+};
+
+
+
+
+
+struct roots {
+        ptr_t r_start;
+        ptr_t r_end;
+
+          struct roots * r_next;
+
+        GC_bool r_tmp;
+
+};
+# 1153 "include\\private/gc_priv.h"
+typedef struct GC_ms_entry {
+    ptr_t mse_start;
+    union word_ptr_ao_u mse_descr;
+
+
+} mse;
+# 1179 "include\\private/gc_priv.h"
+struct _GC_arrays {
+  word _heapsize;
+  word _requested_heapsize;
+  ptr_t _last_heap_addr;
+  ptr_t _prev_heap_addr;
+  word _large_free_bytes;
+
+
+  word _large_allocd_bytes;
+
+
+
+
+  word _max_large_allocd_bytes;
+
+
+
+  word _bytes_allocd_before_gc;
+
+
+
+
+    word _bytes_allocd;
+
+
+  word _bytes_dropped;
+
+
+
+
+  word _bytes_finalized;
+
+
+
+  word _bytes_freed;
+
+
+  word _finalizer_bytes_freed;
+
+
+
+  ptr_t _scratch_end_ptr;
+  ptr_t _scratch_last_end_ptr;
+
+
+  mse *_mark_stack;
+
+
+
+  mse *_mark_stack_limit;
+
+
+
+
+
+    mse *_mark_stack_top;
+
+  word _composite_in_use;
+
+  word _atomic_in_use;
+
+
+
+
+
+
+
+  bottom_index * _all_nils;
+
+
+
+
+  GC_mark_proc _mark_procs[(1 << 6)];
+
+
+
+  char _modws_valid_offsets[sizeof(word)];
+
+
+
+
+    struct roots * _root_index[(1 << 6)];
+# 1272 "include\\private/gc_priv.h"
+    void *_objfreelist[((size_t)((((1 << 12)/2))>>3))+1];
+
+
+    void *_aobjfreelist[((size_t)((((1 << 12)/2))>>3))+1];
+
+
+  void *_uobjfreelist[((size_t)((((1 << 12)/2))>>3))+1];
+# 1288 "include\\private/gc_priv.h"
+  size_t _size_map[((size_t)((1 << 12)/2))+1];
+# 1298 "include\\private/gc_priv.h"
+    unsigned short * _obj_map[((size_t)((((1 << 12)/2))>>3)) + 1];
+# 1312 "include\\private/gc_priv.h"
+  char _valid_offsets[((size_t)(1 << 12))];
+# 1328 "include\\private/gc_priv.h"
+    page_hash_table _grungy_pages;
+
+
+
+
+    volatile page_hash_table _dirty_pages;
+
+
+
+
+
+
+
+  struct HeapSect {
+    ptr_t hs_start;
+    size_t hs_bytes;
+  } _heap_sects[512];
+# 1363 "include\\private/gc_priv.h"
+  struct roots _static_roots[2048];
+  struct exclusion _excl_table[(2048/4)];
+
+  bottom_index * _top_index[(1 << (((word)32) - 10 - ((size_t)12)))];
+};
+
+extern struct _GC_arrays GC_arrays;
+# 1408 "include\\private/gc_priv.h"
+extern struct obj_kind {
+   void **ok_freelist;
+
+
+   struct hblk **ok_reclaim_list;
+
+
+
+   word ok_descriptor;
+
+   GC_bool ok_relocate_descr;
+
+
+
+   GC_bool ok_init;
+# 1437 "include\\private/gc_priv.h"
+} GC_obj_kinds[16];
+# 1474 "include\\private/gc_priv.h"
+extern unsigned GC_n_kinds;
+
+extern word GC_n_heap_sects;
+
+
+
+
+
+
+
+extern size_t GC_page_size;
+# 1504 "include\\private/gc_priv.h"
+extern word GC_black_list_spacing;
+# 1521 "include\\private/gc_priv.h"
+  extern GC_bool GC_incremental;
+
+
+
+
+
+
+extern word GC_root_size;
+
+extern GC_bool GC_debugging_started;
+
+
+
+struct blocking_data {
+    GC_fn_type fn;
+    void * client_data;
+};
+
+
+struct GC_traced_stack_sect_s {
+  ptr_t saved_stack_ptr;
+
+
+
+
+  struct GC_traced_stack_sect_s *prev;
+};
+
+
+
+
+           void GC_push_all_stack_sections(ptr_t lo, ptr_t hi,
+                        struct GC_traced_stack_sect_s *traced_stack_sect);
+  extern word GC_total_stacksize;
+# 1624 "include\\private/gc_priv.h"
+         ptr_t GC_approx_sp(void);
+
+         GC_bool GC_should_collect(void);
+
+void GC_apply_to_all_blocks(void (*fn)(struct hblk *h, word client_data),
+                            word client_data);
+
+
+         struct hblk * GC_next_used_block(struct hblk * h);
+
+         struct hblk * GC_prev_block(struct hblk * h);
+
+
+
+         void GC_mark_init(void);
+         void GC_clear_marks(void);
+
+         void GC_invalidate_mark_state(void);
+
+
+
+
+         GC_bool GC_mark_some(ptr_t cold_gc_frame);
+
+
+
+
+         void GC_initiate_gc(void);
+
+
+
+
+
+         GC_bool GC_collection_in_progress(void);
+# 1672 "include\\private/gc_priv.h"
+         void GC_push_all_stack(ptr_t b, ptr_t t);
+# 1682 "include\\private/gc_priv.h"
+         void GC_push_roots(GC_bool all, ptr_t cold_gc_frame);
+
+
+extern GC_push_other_roots_proc GC_push_other_roots;
+# 1696 "include\\private/gc_priv.h"
+  void GC_push_thread_structures(void);
+
+extern void (*GC_push_typed_structures)(void);
+
+
+
+         void GC_with_callee_saves_pushed(void (*fn)(ptr_t, void *),
+                                          volatile ptr_t arg);
+# 1715 "include\\private/gc_priv.h"
+  void GC_push_one(word p);
+# 1728 "include\\private/gc_priv.h"
+           void GC_mark_and_push_stack(ptr_t p);
+
+
+         void GC_clear_hdr_marks(hdr * hhdr);
+
+         void GC_set_hdr_marks(hdr * hhdr);
+
+         void GC_set_fl_marks(ptr_t p);
+# 1744 "include\\private/gc_priv.h"
+void GC_add_roots_inner(ptr_t b, ptr_t e, GC_bool tmp);
+         void GC_exclude_static_roots_inner(void *start, void *finish);
+
+
+           void GC_register_dynamic_libraries(void);
+
+
+         void GC_cond_register_dynamic_libraries(void);
+
+
+
+
+ptr_t GC_get_main_stack_base(void);
+
+
+
+
+void GC_register_data_segments(void);
+
+
+           void GC_thr_init(void);
+           void GC_init_parallel(void);
+# 1786 "include\\private/gc_priv.h"
+           void GC_add_to_black_list_normal(word p);
+
+
+
+
+
+           void GC_add_to_black_list_stack(word p);
+
+
+
+
+struct hblk * GC_is_black_listed(struct hblk * h, word len);
+
+
+
+
+
+
+
+         void GC_promote_black_lists(void);
+
+         void GC_unpromote_black_lists(void);
+
+
+
+
+         ptr_t GC_scratch_alloc(size_t bytes);
+# 1822 "include\\private/gc_priv.h"
+         void GC_scratch_recycle_inner(void *ptr, size_t bytes);
+
+
+
+         GC_bool GC_add_map_entry(size_t sz);
+
+
+
+         void GC_register_displacement_inner(size_t offset);
+
+
+
+
+         void GC_new_hblk(size_t size_in_granules, int kind);
+
+
+
+         ptr_t GC_build_fl(struct hblk *h, size_t words, GC_bool clear,
+                           ptr_t list);
+
+
+
+
+
+
+
+         struct hblk * GC_allochblk(size_t size_in_bytes, int kind,
+                                    unsigned flags);
+
+
+
+
+         ptr_t GC_alloc_large(size_t lb, int k, unsigned flags);
+# 1864 "include\\private/gc_priv.h"
+         void GC_freehblk(struct hblk * p);
+
+
+
+
+         GC_bool GC_expand_hp_inner(word n);
+         void GC_start_reclaim(GC_bool abort_if_found);
+
+
+
+
+
+         void GC_continue_reclaim(size_t sz, int kind);
+
+
+
+
+
+         GC_bool GC_reclaim_all(GC_stop_func stop_func, GC_bool ignore_old);
+
+
+         ptr_t GC_reclaim_generic(struct hblk * hbp, hdr *hhdr, size_t sz,
+                                  GC_bool init, ptr_t list,
+                                  signed_word *count);
+
+
+
+
+
+         GC_bool GC_block_empty(hdr * hhdr);
+
+         int GC_never_stop_func(void);
+
+         GC_bool GC_try_to_collect_inner(GC_stop_func f);
+# 1906 "include\\private/gc_priv.h"
+extern GC_bool GC_is_initialized;
+
+
+
+
+
+
+
+         void GC_collect_a_little_inner(int n);
+
+
+
+
+
+         void * GC_generic_malloc_inner(size_t lb, int k);
+
+
+
+
+           void * GC_generic_malloc_inner_ignore_off_page(size_t lb, int k);
+
+
+
+
+
+
+
+         ptr_t GC_allocobj(size_t sz, int kind);
+# 1973 "include\\private/gc_priv.h"
+         void GC_init_headers(void);
+         struct hblkhdr * GC_install_header(struct hblk *h);
+
+
+
+         GC_bool GC_install_counts(struct hblk * h, size_t sz);
+
+
+
+         void GC_remove_header(struct hblk * h);
+
+         void GC_remove_counts(struct hblk * h, size_t sz);
+
+         hdr * GC_find_header(ptr_t h);
+
+         void GC_add_to_heap(struct hblk *p, size_t bytes);
+# 1999 "include\\private/gc_priv.h"
+         void GC_print_all_errors(void);
+
+
+
+extern void (*GC_check_heap)(void);
+
+
+
+extern void (*GC_print_all_smashed)(void);
+
+
+extern void (*GC_print_heap_obj)(ptr_t p);
+
+
+
+
+
+  void GC_print_address_map(void);
+
+
+
+
+  extern GC_bool GC_findleak_delay_free;
+
+
+
+           GC_bool GC_check_leaked(ptr_t base);
+
+
+extern GC_bool GC_have_errors;
+
+
+
+
+
+
+
+  extern int GC_print_stats;
+# 2054 "include\\private/gc_priv.h"
+extern GC_bool GC_print_back_height;
+
+
+
+
+
+
+           void GC_free_inner(void * p);
+# 2101 "include\\private/gc_priv.h"
+  extern int GC_handle_fork;
+# 2118 "include\\private/gc_priv.h"
+  extern GC_bool GC_dirty_maintained;
+
+
+
+
+
+
+           void GC_read_dirty(GC_bool output_unneeded);
+
+
+
+           GC_bool GC_page_was_dirty(struct hblk *h);
+
+
+           void GC_remove_protection(struct hblk *h, word nblocks,
+                                   GC_bool pointerfree);
+# 2144 "include\\private/gc_priv.h"
+           void GC_dirty_init(void);
+
+
+
+
+
+
+void GC_read_changed(void);
+GC_bool GC_page_was_changed(struct hblk * h);
+
+void GC_clean_changing_list(void);
+
+void GC_stubborn_init(void);
+
+
+void GC_print_block_list(void);
+void GC_print_hblkfreelist(void);
+void GC_print_heap_sects(void);
+void GC_print_static_roots(void);
+
+
+extern word GC_fo_entries;
+# 2178 "include\\private/gc_priv.h"
+void GC_noop6(word, word, word, word, word, word);
+
+extern void GC_noop1(word);
+# 2195 "include\\private/gc_priv.h"
+extern void GC_printf(const char * format, ...)
+                        __attribute__((__format__(__printf__, 1, 2)));
+
+
+
+
+extern void GC_err_printf(const char * format, ...)
+                        __attribute__((__format__(__printf__, 1, 2)));
+
+
+
+
+
+
+extern void GC_log_printf(const char * format, ...)
+                        __attribute__((__format__(__printf__, 1, 2)));
+# 2242 "include\\private/gc_priv.h"
+void GC_err_puts(const char *s);
+
+
+
+
+
+
+
+extern unsigned GC_fail_count;
+
+
+
+extern long GC_large_alloc_warn_interval;
+
+extern signed_word GC_bytes_found;
+
+
+
+
+  extern word GC_reclaimed_bytes_before_gc;
+# 2288 "include\\private/gc_priv.h"
+    extern volatile unsigned char GC_fault_handler_lock;
+# 2323 "include\\private/gc_priv.h"
+         void GC_default_print_heap_obj_proc(ptr_t p);
+
+         void GC_extend_size_map(size_t);
+
+         void GC_setpagesize(void);
+
+         void GC_initialize_offsets(void);
+
+         void GC_bl_init(void);
+         void GC_bl_init_no_interiors(void);
+
+         void GC_start_debugging(void);
+
+
+
+         ptr_t GC_store_debug_info(ptr_t p, word sz, const char *str,
+                                   int linenum);
+# 2360 "include\\private/gc_priv.h"
+           void * GC_roots_present(ptr_t);
+# 2374 "include\\private/gc_priv.h"
+           void GC_reset_finalizer_nested(void);
+           unsigned char *GC_check_finalizer_nested(void);
+           void GC_do_blocking_inner(ptr_t data, void * context);
+           void GC_push_all_stacks(void);
+# 2387 "include\\private/gc_priv.h"
+           GC_bool GC_register_main_static_data(void);
+
+
+
+
+
+
+           void GC_init_linux_data_start(void);
+
+
+
+
+
+
+
+           void GC_set_and_save_fault_handler(void (*handler)(int));
+# 2411 "include\\private/gc_priv.h"
+           char *GC_get_maps(void);
+# 2457 "include\\private/gc_priv.h"
+  extern GC_bool GC_dump_regularly;
+# 2540 "include\\private/gc_priv.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\setjmp.h" 1
+# 44 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\setjmp.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\machine/setjmp.h" 1
+# 45 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\setjmp.h" 2
+
+typedef long sigjmp_buf[10 + 1];
+typedef long jmp_buf[10];
+
+
+
+int _setjmp(jmp_buf);
+void _longjmp(jmp_buf, int);
+
+int setjmp(jmp_buf);
+void longjmp(jmp_buf, int);
+
+int sigsetjmp(sigjmp_buf, int);
+void siglongjmp(sigjmp_buf, int);
+# 2541 "include\\private/gc_priv.h" 2
+# 2603 "include\\private/gc_priv.h"
+  extern sigjmp_buf GC_jmp_buf;
+
+
+
+           void GC_setup_temporary_fault_handler(void);
+
+           void GC_reset_fault_handler(void);
+# 16 "dyn_load.c" 2
+# 50 "dyn_load.c"
+       GC_has_static_roots_func GC_has_static_roots = 0;
+# 68 "dyn_load.c"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h" 1
+# 52 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stdarg.h" 1 3
+# 30 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stdarg.h" 3
+typedef __builtin_va_list va_list;
+# 48 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stdarg.h" 3
+typedef __builtin_va_list __gnuc_va_list;
+# 53 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h" 2
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 54 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h" 2
+
+
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 57 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h" 2
+
+
+
+typedef off_t fpos_t;
+# 75 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h"
+struct __sbuf {
+ unsigned char *_base;
+ int _size;
+};
+# 108 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h"
+typedef struct __sFILE {
+ unsigned char *_p;
+ int _r;
+ int _w;
+
+
+
+
+ short _flags;
+ short _file;
+
+ struct __sbuf _bf;
+ int _lbfsize;
+
+
+ void *_cookie;
+ int (*_close)(void *);
+ int (*_read)(void *, char *, int);
+ fpos_t (*_seek)(void *, fpos_t, int);
+ int (*_write)(void *, const char *, int);
+
+
+ struct __sbuf _ext;
+
+ unsigned char *_up;
+ int _ur;
+
+
+ unsigned char _ubuf[3];
+ unsigned char _nbuf[1];
+
+
+ struct __sbuf _lb;
+
+
+ int _blksize;
+ fpos_t _offset;
+} FILE;
+
+
+extern FILE __sF[];
+# 220 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h"
+void clearerr(FILE *);
+int fclose(FILE *);
+int feof(FILE *);
+int ferror(FILE *);
+int fflush(FILE *);
+int fgetc(FILE *);
+char *fgets(char * __restrict, int, FILE * __restrict);
+FILE *fopen(const char * __restrict , const char * __restrict);
+int fprintf(FILE * __restrict , const char * __restrict, ...)
+  __attribute__((__format__(printf, 2, 3))) __attribute__((__nonnull__ (2)));
+int fputc(int, FILE *);
+int fputs(const char * __restrict, FILE * __restrict);
+size_t fread(void * __restrict, size_t, size_t, FILE * __restrict);
+FILE *freopen(const char * __restrict, const char * __restrict,
+     FILE * __restrict);
+int fscanf(FILE * __restrict, const char * __restrict, ...)
+  __attribute__((__format__(scanf, 2, 3))) __attribute__((__nonnull__ (2)));
+int fseek(FILE *, long, int);
+long ftell(FILE *);
+size_t fwrite(const void * __restrict, size_t, size_t, FILE * __restrict);
+int getc(FILE *);
+int getchar(void);
+ssize_t getdelim(char ** __restrict, size_t * __restrict, int,
+     FILE * __restrict);
+ssize_t getline(char ** __restrict, size_t * __restrict, FILE * __restrict);
+
+void perror(const char *);
+int printf(const char * __restrict, ...)
+  __attribute__((__format__(printf, 1, 2))) __attribute__((__nonnull__ (1)));
+int putc(int, FILE *);
+int putchar(int);
+int puts(const char *);
+int remove(const char *);
+void rewind(FILE *);
+int scanf(const char * __restrict, ...)
+  __attribute__((__format__(scanf, 1, 2))) __attribute__((__nonnull__ (1)));
+void setbuf(FILE * __restrict, char * __restrict);
+int setvbuf(FILE * __restrict, char * __restrict, int, size_t);
+int sscanf(const char * __restrict, const char * __restrict, ...)
+  __attribute__((__format__(scanf, 2, 3))) __attribute__((__nonnull__ (2)));
+FILE *tmpfile(void);
+int ungetc(int, FILE *);
+int vfprintf(FILE * __restrict, const char * __restrict, __va_list)
+  __attribute__((__format__(printf, 2, 0))) __attribute__((__nonnull__ (2)));
+int vprintf(const char * __restrict, __va_list)
+  __attribute__((__format__(printf, 1, 0))) __attribute__((__nonnull__ (1)));
+
+int dprintf(int, const char * __restrict, ...) __attribute__((__format__(printf, 2, 3))) __attribute__((__nonnull__ (2)));
+int vdprintf(int, const char * __restrict, __va_list) __attribute__((__format__(printf, 2, 0))) __attribute__((__nonnull__ (2)));
+
+
+
+
+
+int sprintf(char* __restrict, const char* __restrict, ...)
+    __attribute__((__format__(printf, 2, 3))) __attribute__((__nonnull__ (2)));
+char* tmpnam(char*) ;
+int vsprintf(char* __restrict, const char* __restrict, __va_list)
+    __attribute__((__format__(printf, 2, 0))) __attribute__((__nonnull__ (2)));
+
+char* tempnam(const char*, const char*)
+                                                                        ;
+
+
+
+extern int rename(const char*, const char*);
+extern int renameat(int, const char*, int, const char*);
+
+int fgetpos(FILE * __restrict, fpos_t * __restrict);
+int fsetpos(FILE *, const fpos_t *);
+
+int fseeko(FILE *, off_t, int);
+off_t ftello(FILE *);
+
+
+int snprintf(char * __restrict, size_t, const char * __restrict, ...)
+  __attribute__((__format__(printf, 3, 4))) __attribute__((__nonnull__ (3)));
+int vfscanf(FILE * __restrict, const char * __restrict, __va_list)
+  __attribute__((__format__(scanf, 2, 0))) __attribute__((__nonnull__ (2)));
+int vscanf(const char *, __va_list)
+  __attribute__((__format__(scanf, 1, 0))) __attribute__((__nonnull__ (1)));
+int vsnprintf(char * __restrict, size_t, const char * __restrict, __va_list)
+  __attribute__((__format__(printf, 3, 0))) __attribute__((__nonnull__ (3)));
+int vsscanf(const char * __restrict, const char * __restrict, __va_list)
+  __attribute__((__format__(scanf, 2, 0))) __attribute__((__nonnull__ (2)));
+# 317 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h"
+FILE *fdopen(int, const char *);
+int fileno(FILE *);
+
+
+int pclose(FILE *);
+FILE *popen(const char *, const char *);
+
+
+
+void flockfile(FILE *);
+int ftrylockfile(FILE *);
+void funlockfile(FILE *);
+
+
+
+
+
+int getc_unlocked(FILE *);
+int getchar_unlocked(void);
+int putc_unlocked(int, FILE *);
+int putchar_unlocked(int);
+# 349 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\stdio.h"
+int asprintf(char ** __restrict, const char * __restrict, ...)
+  __attribute__((__format__(printf, 2, 3))) __attribute__((__nonnull__ (2)));
+char *fgetln(FILE * __restrict, size_t * __restrict);
+int fpurge(FILE *);
+void setbuffer(FILE *, char *, int);
+int setlinebuf(FILE *);
+int vasprintf(char ** __restrict, const char * __restrict,
+    __va_list)
+  __attribute__((__format__(printf, 2, 0))) __attribute__((__nonnull__ (2)));
+
+
+
+
+
+
+FILE *funopen(const void *,
+  int (*)(void *, char *, int),
+  int (*)(void *, const char *, int),
+  fpos_t (*)(void *, fpos_t, int),
+  int (*)(void *));
+# 69 "dyn_load.c" 2
+# 93 "dyn_load.c"
+# 1 "c:\\p\\llvm\\llvm-bin32\\RelWithDebInfo\\lib\\clang\\6.0.0\\include\\stddef.h" 1 3
+# 94 "dyn_load.c" 2
+# 111 "dyn_load.c"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\link.h" 1
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\link.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\elf.h" 1
+# 31 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\elf.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/auxvec.h" 1
+# 21 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/auxvec.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\asm/auxvec.h" 1
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/auxvec.h" 2
+# 32 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\elf.h" 2
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/elf.h" 1
+# 22 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/elf.h"
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/elf-em.h" 1
+# 23 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/elf.h" 2
+
+typedef __u32 Elf32_Addr;
+typedef __u16 Elf32_Half;
+typedef __u32 Elf32_Off;
+typedef __s32 Elf32_Sword;
+
+typedef __u32 Elf32_Word;
+typedef __u64 Elf64_Addr;
+typedef __u16 Elf64_Half;
+typedef __s16 Elf64_SHalf;
+
+typedef __u64 Elf64_Off;
+typedef __s32 Elf64_Sword;
+typedef __u32 Elf64_Word;
+typedef __u64 Elf64_Xword;
+
+typedef __s64 Elf64_Sxword;
+# 141 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/elf.h"
+typedef struct dynamic{
+ Elf32_Sword d_tag;
+
+ union{
+ Elf32_Sword d_val;
+ Elf32_Addr d_ptr;
+ } d_un;
+
+} Elf32_Dyn;
+typedef struct {
+ Elf64_Sxword d_tag;
+ union {
+
+ Elf64_Xword d_val;
+ Elf64_Addr d_ptr;
+ } d_un;
+} Elf64_Dyn;
+
+
+
+
+
+
+typedef struct elf32_rel {
+ Elf32_Addr r_offset;
+ Elf32_Word r_info;
+} Elf32_Rel;
+
+typedef struct elf64_rel {
+ Elf64_Addr r_offset;
+ Elf64_Xword r_info;
+} Elf64_Rel;
+
+typedef struct elf32_rela{
+ Elf32_Addr r_offset;
+ Elf32_Word r_info;
+ Elf32_Sword r_addend;
+
+} Elf32_Rela;
+typedef struct elf64_rela {
+ Elf64_Addr r_offset;
+ Elf64_Xword r_info;
+
+ Elf64_Sxword r_addend;
+} Elf64_Rela;
+typedef struct elf32_sym{
+ Elf32_Word st_name;
+
+ Elf32_Addr st_value;
+ Elf32_Word st_size;
+ unsigned char st_info;
+ unsigned char st_other;
+
+ Elf32_Half st_shndx;
+} Elf32_Sym;
+typedef struct elf64_sym {
+ Elf64_Word st_name;
+
+ unsigned char st_info;
+ unsigned char st_other;
+ Elf64_Half st_shndx;
+ Elf64_Addr st_value;
+
+ Elf64_Xword st_size;
+} Elf64_Sym;
+
+typedef struct elf32_hdr{
+
+ unsigned char e_ident[16];
+ Elf32_Half e_type;
+ Elf32_Half e_machine;
+ Elf32_Word e_version;
+
+ Elf32_Addr e_entry;
+ Elf32_Off e_phoff;
+ Elf32_Off e_shoff;
+ Elf32_Word e_flags;
+
+ Elf32_Half e_ehsize;
+ Elf32_Half e_phentsize;
+ Elf32_Half e_phnum;
+ Elf32_Half e_shentsize;
+
+ Elf32_Half e_shnum;
+ Elf32_Half e_shstrndx;
+} Elf32_Ehdr;
+typedef struct elf64_hdr {
+
+ unsigned char e_ident[16];
+ Elf64_Half e_type;
+ Elf64_Half e_machine;
+ Elf64_Word e_version;
+
+ Elf64_Addr e_entry;
+ Elf64_Off e_phoff;
+ Elf64_Off e_shoff;
+ Elf64_Word e_flags;
+
+ Elf64_Half e_ehsize;
+ Elf64_Half e_phentsize;
+ Elf64_Half e_phnum;
+ Elf64_Half e_shentsize;
+
+ Elf64_Half e_shnum;
+ Elf64_Half e_shstrndx;
+} Elf64_Ehdr;
+
+
+
+
+typedef struct elf32_phdr{
+ Elf32_Word p_type;
+
+ Elf32_Off p_offset;
+ Elf32_Addr p_vaddr;
+ Elf32_Addr p_paddr;
+ Elf32_Word p_filesz;
+
+ Elf32_Word p_memsz;
+ Elf32_Word p_flags;
+ Elf32_Word p_align;
+} Elf32_Phdr;
+
+typedef struct elf64_phdr {
+ Elf64_Word p_type;
+ Elf64_Word p_flags;
+ Elf64_Off p_offset;
+
+ Elf64_Addr p_vaddr;
+ Elf64_Addr p_paddr;
+ Elf64_Xword p_filesz;
+ Elf64_Xword p_memsz;
+
+ Elf64_Xword p_align;
+} Elf64_Phdr;
+# 311 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/elf.h"
+typedef struct elf32_shdr {
+ Elf32_Word sh_name;
+
+ Elf32_Word sh_type;
+ Elf32_Word sh_flags;
+ Elf32_Addr sh_addr;
+ Elf32_Off sh_offset;
+
+ Elf32_Word sh_size;
+ Elf32_Word sh_link;
+ Elf32_Word sh_info;
+ Elf32_Word sh_addralign;
+
+ Elf32_Word sh_entsize;
+} Elf32_Shdr;
+typedef struct elf64_shdr {
+ Elf64_Word sh_name;
+
+ Elf64_Word sh_type;
+ Elf64_Xword sh_flags;
+ Elf64_Addr sh_addr;
+ Elf64_Off sh_offset;
+
+ Elf64_Xword sh_size;
+ Elf64_Word sh_link;
+ Elf64_Word sh_info;
+ Elf64_Xword sh_addralign;
+
+ Elf64_Xword sh_entsize;
+} Elf64_Shdr;
+# 416 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\linux/elf.h"
+typedef struct elf32_note {
+ Elf32_Word n_namesz;
+
+ Elf32_Word n_descsz;
+ Elf32_Word n_type;
+} Elf32_Nhdr;
+typedef struct elf64_note {
+
+ Elf64_Word n_namesz;
+ Elf64_Word n_descsz;
+ Elf64_Word n_type;
+} Elf64_Nhdr;
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\elf.h" 2
+
+
+# 1 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\machine/elf_machdep.h" 1
+# 36 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\elf.h" 2
+
+typedef struct {
+  __u32 a_type;
+  union {
+    __u32 a_val;
+  } a_un;
+} Elf32_auxv_t;
+
+typedef struct {
+  __u64 a_type;
+  union {
+    __u64 a_val;
+  } a_un;
+} Elf64_auxv_t;
+# 33 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\link.h" 2
+# 42 "C:\\Users\\carlokok\\AppData\\Local\\Android\\sdk\\ndk-bundle\\platforms\\android-24\\arch-x86\\usr\\include\\link.h"
+struct dl_phdr_info {
+  Elf32_Addr dlpi_addr;
+  const char* dlpi_name;
+  const Elf32_Phdr* dlpi_phdr;
+  Elf32_Half dlpi_phnum;
+};
+
+int dl_iterate_phdr(int (*)(struct dl_phdr_info*, size_t, void*), void*);
+
+
+
+
+
+
+
+struct link_map {
+  Elf32_Addr l_addr;
+  char* l_name;
+  Elf32_Dyn* l_ld;
+  struct link_map* l_next;
+  struct link_map* l_prev;
+};
+
+
+struct r_debug {
+  int32_t r_version;
+  struct link_map* r_map;
+  Elf32_Addr r_brk;
+  enum {
+    RT_CONSISTENT,
+    RT_ADD,
+    RT_DELETE
+  } r_state;
+  Elf32_Addr r_ldbase;
+};
+# 112 "dyn_load.c" 2
+# 420 "dyn_load.c"
+    int dl_iterate_phdr(int (*cb)(struct dl_phdr_info *, size_t, void *),
+                        void *data);
+# 436 "dyn_load.c"
+#pragma weak dl_iterate_phdr
+# 451 "dyn_load.c"
+ static struct load_segment {
+      ptr_t start;
+      ptr_t end;
+
+
+      ptr_t start2;
+      ptr_t end2;
+    } load_segs[2048];
+
+    static int n_load_segs;
+    static GC_bool load_segs_overflow;
+
+
+       int GC_register_dynlib_callback(struct dl_phdr_info * info,
+                                       size_t size, void * ptr)
+{
+  const Elf32_Phdr * p;
+  ptr_t start, end;
+  int i;
+
+
+  if (size < __builtin_offsetof(struct dl_phdr_info, dlpi_phnum)
+      + sizeof (info->dlpi_phnum))
+    return -1;
+
+  p = info->dlpi_phdr;
+  for (i = 0; i < (int)info->dlpi_phnum; i++, p++) {
+    if (p->p_type == 1) {
+      GC_has_static_roots_func callback = GC_has_static_roots;
+      if ((p->p_flags & 0x2) == 0) continue;
+
+      start = (ptr_t)p->p_vaddr + info->dlpi_addr;
+      end = start + p->p_memsz;
+      if (callback != 0 && !callback(info->dlpi_name, start, p->p_memsz))
+        continue;
+# 495 "dyn_load.c"
+        if (n_load_segs >= 2048) {
+          if (!load_segs_overflow) {
+            (*GC_current_warn_proc)("GC Warning: " "Too many PT_LOAD segments;" " registering as roots directly...\n", (word)(0));
+
+            load_segs_overflow = 1;
+          }
+          GC_add_roots_inner(start, end, 1);
+        } else {
+          load_segs[n_load_segs].start = start;
+          load_segs[n_load_segs].end = end;
+          load_segs[n_load_segs].start2 = 0;
+          load_segs[n_load_segs].end2 = 0;
+          ++n_load_segs;
+        }
+
+
+
+    }
+  }
+
+
+    p = info->dlpi_phdr;
+    for (i = 0; i < (int)info->dlpi_phnum; i++, p++) {
+      if (p->p_type == 0x6474e552) {
+
+
+
+
+        int j;
+
+        start = (ptr_t)p->p_vaddr + info->dlpi_addr;
+        end = start + p->p_memsz;
+        for (j = n_load_segs; --j >= 0; ) {
+          if ((word)start >= (word)load_segs[j].start
+              && (word)start < (word)load_segs[j].end) {
+            if (load_segs[j].start2 != 0) {
+              (*GC_current_warn_proc)("GC Warning: " "More than one GNU_RELRO segment per load one\n", (word)(0));
+            } else {
+                                                            ;
+
+              load_segs[j].end2 = load_segs[j].end;
+              load_segs[j].end = start;
+              load_segs[j].start2 = end;
+            }
+            break;
+          }
+          if (0 == j && 0 == GC_has_static_roots)
+            (*GC_current_warn_proc)("GC Warning: " "Failed to find PT_GNU_RELRO segment" " inside PT_LOAD region\n", (word)(0));
+
+
+
+        }
+      }
+    }
+
+
+  *(int *)ptr = 1;
+  return 0;
+}
+
+
+         GC_bool GC_register_main_static_data(void)
+{
+
+
+
+
+
+    return 0 == ((GC_word)(dl_iterate_phdr));
+
+}
+
+
+       GC_bool GC_register_dynamic_libraries_dl_iterate_phdr(void)
+{
+  int did_something;
+  if (GC_register_main_static_data())
+    return 0;
+
+
+    {
+      static GC_bool excluded_segs = 0;
+      n_load_segs = 0;
+      load_segs_overflow = 0;
+      if (!__builtin_expect(excluded_segs,1)) {
+        GC_exclude_static_roots_inner((ptr_t)load_segs,
+                                      (ptr_t)load_segs + sizeof(load_segs));
+        excluded_segs = 1;
+      }
+    }
+
+
+  did_something = 0;
+  dl_iterate_phdr(GC_register_dynlib_callback, &did_something);
+  if (did_something) {
+
+      int i;
+
+      for (i = 0; i < n_load_segs; ++i) {
+        if ((word)load_segs[i].end > (word)load_segs[i].start) {
+          GC_add_roots_inner(load_segs[i].start, load_segs[i].end, 1);
+        }
+        if ((word)load_segs[i].end2 > (word)load_segs[i].start2) {
+          GC_add_roots_inner(load_segs[i].start2, load_segs[i].end2, 1);
+        }
+      }
+
+  } else {
+      char *datastart;
+      char *dataend;
+# 614 "dyn_load.c"
+        datastart = GC_data_start;
+# 626 "dyn_load.c"
+        dataend = (__end__ != 0 ? (ptr_t)__end__ : (ptr_t)_end);
+
+      if (((void*)0) == *(char * volatile *)&datastart
+          || (word)datastart > (word)dataend)
+        do { if (__builtin_expect(!GC_print_stats,1)) {} else GC_log_printf("Wrong DATASTART/END pair" ": %p .. %p", (void *)datastart, (void *)dataend); (GC_on_abort("Wrong DATASTART/END pair"), abort()); } while (0);
+
+
+
+
+      GC_add_roots_inner(datastart, dataend, 1);
+# 645 "dyn_load.c"
+  }
+  return 1;
+}
+# 684 "dyn_load.c"
+#pragma weak _DYNAMIC
+
+extern Elf32_Dyn _DYNAMIC[];
+
+       struct link_map *
+GC_FirstDLOpenedLinkMap(void)
+{
+    static struct link_map *cachedResult = 0;
+
+    if (0 == ((GC_word)(_DYNAMIC))) {
+
+        return(0);
+    }
+    if( cachedResult == 0 ) {
+# 715 "dyn_load.c"
+        Elf32_Dyn *dp;
+        int tag;
+
+        for( dp = _DYNAMIC; (tag = dp->d_tag) != 0; dp++ ) {
+            if (tag == 21) {
+                struct r_debug *rd = (struct r_debug *)dp->d_un.d_ptr;
+
+                if (rd != ((void*)0)) {
+                    struct link_map *lm = rd->r_map;
+                    if (lm != ((void*)0))
+                        cachedResult = lm->l_next;
+                }
+                break;
+            }
+        }
+
+    }
+    return cachedResult;
+}
+
+         void GC_register_dynamic_libraries(void)
+{
+  struct link_map *lm;
+
+
+    if (GC_register_dynamic_libraries_dl_iterate_phdr()) {
+        return;
+    }
+
+  for (lm = GC_FirstDLOpenedLinkMap(); lm != 0; lm = lm->l_next)
+    {
+        Elf32_Ehdr * e;
+        Elf32_Phdr * p;
+        unsigned long offset;
+        char * start;
+        int i;
+
+        e = (Elf32_Ehdr *) lm->l_addr;
+
+          if (e == ((void*)0))
+            continue;
+
+        p = ((Elf32_Phdr *)(((char *)(e)) + e->e_phoff));
+        offset = ((unsigned long)(lm->l_addr));
+        for( i = 0; i < (int)e->e_phnum; i++, p++ ) {
+          switch( p->p_type ) {
+            case 1:
+              {
+                if( !(p->p_flags & 0x2) ) break;
+                start = ((char *)(p->p_vaddr)) + offset;
+                GC_add_roots_inner(start, start + p->p_memsz, 1);
+              }
+              break;
+            default:
+              break;
+          }
+        }
+    }
+}
+# 1529 "dyn_load.c"
+extern void GC_register_has_static_roots_callback(
+                                        GC_has_static_roots_func callback)
+{
+    GC_has_static_roots = callback;
+}

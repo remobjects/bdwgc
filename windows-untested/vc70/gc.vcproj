@@ -159,6 +159,9 @@
                 RelativePath="..\..\blacklst.c">
             </File>
             <File
+                RelativePath="..\..\checksums.c">
+            </File>
+            <File
                 RelativePath="..\..\dbg_mlc.c">
             </File>
             <File
@@ -195,7 +198,7 @@
                 RelativePath="..\..\misc.c">
             </File>
             <File
-                RelativePath="..\..\extra\msvc_dbg.c">
+                RelativePath="..\..\msvc_dbg.c">
             </File>
             <File
                 RelativePath="..\..\new_hblk.c">
@@ -226,6 +229,9 @@
                         Name="VCCLCompilerTool"
                         UsePrecompiledHeader="1"/>
                 </FileConfiguration>
+            </File>
+            <File
+                RelativePath="..\..\stubborn.c">
             </File>
             <File
                 RelativePath="..\..\typd_mlc.c">
@@ -295,10 +301,7 @@
                 RelativePath="..\..\include\leak_detector.h">
             </File>
             <File
-                RelativePath="..\..\include\private\msvc_dbg.h">
-            </File>
-            <File
-                RelativePath="..\..\include\gc_alloc_ptrs.h">
+                RelativePath="..\..\msvc_dbg.h">
             </File>
             <File
                 RelativePath="..\..\include\new_gc_alloc.h">
@@ -307,7 +310,10 @@
                 RelativePath="..\stdafx.h">
             </File>
             <File
-                RelativePath="..\..\include\gc_version.h">
+                RelativePath="..\..\version.h">
+            </File>
+            <File
+                RelativePath="..\..\include\weakpointer.h">
             </File>
         </Filter>
         <Filter

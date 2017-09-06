@@ -216,6 +216,28 @@
                 </FileConfiguration>
             </File>
             <File
+                RelativePath="..\..\checksums.c">
+                <FileConfiguration
+                    Name="Debug|Win32">
+                    <Tool
+                        Name="VCCLCompilerTool"
+                        Optimization="0"
+                        AdditionalIncludeDirectories=""
+                        PreprocessorDefinitions=""
+                        BasicRuntimeChecks="3"
+                        ForcedIncludeFiles=""/>
+                </FileConfiguration>
+                <FileConfiguration
+                    Name="Release|Win32">
+                    <Tool
+                        Name="VCCLCompilerTool"
+                        Optimization="2"
+                        AdditionalIncludeDirectories=""
+                        PreprocessorDefinitions=""
+                        ForcedIncludeFiles=""/>
+                </FileConfiguration>
+            </File>
+            <File
                 RelativePath="..\..\dbg_mlc.c">
                 <FileConfiguration
                     Name="Debug|Win32">
@@ -480,7 +502,7 @@
                 </FileConfiguration>
             </File>
             <File
-                RelativePath="..\..\extra\msvc_dbg.c">
+                RelativePath="..\..\msvc_dbg.c">
                 <FileConfiguration
                     Name="Debug|Win32">
                     <Tool
@@ -636,6 +658,28 @@
                 </FileConfiguration>
             </File>
             <File
+                RelativePath="..\..\stubborn.c">
+                <FileConfiguration
+                    Name="Debug|Win32">
+                    <Tool
+                        Name="VCCLCompilerTool"
+                        Optimization="0"
+                        AdditionalIncludeDirectories=""
+                        PreprocessorDefinitions=""
+                        BasicRuntimeChecks="3"
+                        ForcedIncludeFiles=""/>
+                </FileConfiguration>
+                <FileConfiguration
+                    Name="Release|Win32">
+                    <Tool
+                        Name="VCCLCompilerTool"
+                        Optimization="2"
+                        AdditionalIncludeDirectories=""
+                        PreprocessorDefinitions=""
+                        ForcedIncludeFiles=""/>
+                </FileConfiguration>
+            </File>
+            <File
                 RelativePath="..\..\typd_mlc.c">
                 <FileConfiguration
                     Name="Debug|Win32">
@@ -684,13 +728,13 @@
             Name="Header Files"
             Filter="h;hh;hpp;hxx;hm;inl">
             <File
-                RelativePath="..\..\include\private\msvc_dbg.h">
+                RelativePath="..\..\msvc_dbg.h">
             </File>
             <File
                 RelativePath="..\stdafx.h">
             </File>
             <File
-                RelativePath="..\..\include\gc_version.h">
+                RelativePath="..\..\version.h">
             </File>
         </Filter>
     </Files>
