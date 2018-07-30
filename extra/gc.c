@@ -46,6 +46,7 @@
 #include "../obj_map.c"
 #include "../ptr_chck.c"
 
+#include "gc_inline.h"
 #include "../allchblk.c"
 #include "../alloc.c"
 #include "../dbg_mlc.c"
@@ -61,9 +62,6 @@
 #include "../misc.c"
 #include "../os_dep.c"
 #include "../thread_local_alloc.c"
-
-/* Unity specific includes */
-#include "../heapsections.c"
 
 /* Most platform-specific files go here... */
 #include "../darwin_stop_world.c"
@@ -84,6 +82,7 @@
 /* This is only useful if directly included from application    */
 /* (instead of linking gc).                                     */
 #ifndef GC_NO_THREAD_REDIRECTS
+# define GC_PTHREAD_REDIRECTS_ONLY
 # include "gc_pthread_redirects.h"
 #endif
 

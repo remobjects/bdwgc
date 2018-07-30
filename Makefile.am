@@ -11,6 +11,12 @@
 
 ## Process this file with automake to produce Makefile.in.
 
+# Info (current:revision:age) for the Libtool versioning system.
+# These numbers should be updated at most once just before the release,
+# and, optionally, at most once during the development (after the release).
+LIBGC_VER_INFO = 5:0:4
+LIBGCCPP_VER_INFO = 4:0:3
+
 ## FIXME: `make distcheck' in this directory will not currently work.
 ##     This is most likely to the explicit flags passed to submakes.
 
@@ -18,7 +24,7 @@
 # use the internal version.  This is done since libatomic_ops doesn't
 # use libtool, since it has no real use for it.  But that seems to make
 # it hard to use either the resulting object files or libraries.
-# Thus there seems too be no real reason to recursively build in the
+# Thus there seems to be no real reason to recursively build in the
 # libatomic_ops directory.
 # if USE_INTERNAL_LIBATOMICS_OPS
 # SUBDIRS = @maybe_libatomic_ops@
@@ -32,9 +38,9 @@ AM_CPPFLAGS = \
     -I$(top_builddir)/include -I$(top_srcdir)/include \
     $(ATOMIC_OPS_CFLAGS)
 
-# Initialize variables so that we can declare files locally.
+## Initialize variables so that we can declare files locally.
 EXTRA_DIST =
-noinst_LTLIBRARIES =
+lib_LTLIBRARIES =
 include_HEADERS =
 pkginclude_HEADERS =
 dist_noinst_HEADERS =
@@ -48,18 +54,25 @@ pkgconfig_DATA = bdw-gc.pc
 # C Library
 # ---------
 
-noinst_LTLIBRARIES += libgc.la
-noinst_LTLIBRARIES += libgc-static.la
+lib_LTLIBRARIES += libgc.la
+
 if SINGLE_GC_OBJ
+
 libgc_la_SOURCES = extra/gc.c
+
+if PTHREAD_START_STANDALONE
+AM_CPPFLAGS += -DGC_PTHREAD_START_STANDALONE
+libgc_la_SOURCES += pthread_start.c
+endif
+
 else
+
 EXTRA_DIST += extra/gc.c
 libgc_la_SOURCES = \
-    allchblk.c alloc.c blacklst.c checksums.c dbg_mlc.c \
+    allchblk.c alloc.c blacklst.c dbg_mlc.c \
     dyn_load.c finalize.c gc_dlopen.c gcj_mlc.c headers.c \
     mach_dep.c malloc.c mallocx.c mark.c mark_rts.c misc.c new_hblk.c \
-    obj_map.c os_dep.c pcr_interface.c ptr_chck.c real_malloc.c reclaim.c \
-    specific.c stubborn.c thread_local_alloc.c typd_mlc.c
+    obj_map.c os_dep.c ptr_chck.c reclaim.c specific.c typd_mlc.c
 
 # C Library: Architecture Dependent
 # ---------------------------------
@@ -68,6 +81,7 @@ if WIN32_THREADS
 libgc_la_SOURCES += win32_threads.c
 else
 if PTHREADS
+# Not Cygwin or MinGW.
 libgc_la_SOURCES += pthread_start.c pthread_support.c
 if DARWIN_THREADS
 libgc_la_SOURCES += darwin_stop_world.c
@@ -77,17 +91,25 @@ endif
 endif
 endif
 
+if THREAD_LOCAL_ALLOC
+libgc_la_SOURCES += thread_local_alloc.c
+endif
+
 if MAKE_BACK_GRAPH
 libgc_la_SOURCES += backgraph.c
 endif
 
+if CHECKSUMS
+libgc_la_SOURCES += checksums.c
+endif
+
 if ENABLE_DISCLAIM
 libgc_la_SOURCES += fnlz_mlc.c
+pkginclude_HEADERS += include/gc_disclaim.h
 endif
 
+## End of !SINGLE_GC_OBJ
 endif
-
-libgc_static_la_SOURCES = $(libgc_la_SOURCES)
 
 if USE_INTERNAL_LIBATOMIC_OPS
 nodist_libgc_la_SOURCES = libatomic_ops/src/atomic_ops.c
@@ -97,38 +119,30 @@ if NEED_ATOMIC_OPS_ASM
 nodist_libgc_la_SOURCES = libatomic_ops/src/atomic_ops_sysdeps.S
 endif
 
-nodist_libgc_static_la_SOURCES = $(nodist_libgc_la_SOURCES)
-
 # Include THREADDLLIBS here to ensure that the correct versions of
 # linuxthread semaphore functions get linked:
 libgc_la_LIBADD = @addobjs@ $(THREADDLLIBS) $(UNWINDLIBS) $(ATOMIC_OPS_LIBS)
 libgc_la_DEPENDENCIES = @addobjs@
-libgc_la_LDFLAGS = $(extra_ldflags_libgc) -version-info 1:3:0 -no-undefined
+libgc_la_LDFLAGS = $(extra_ldflags_libgc) -version-info $(LIBGC_VER_INFO) \
+    -no-undefined
 
-EXTRA_libgc_la_SOURCES = src/ia64_save_regs_in_stack.s src/sparc_mach_dep.S \
-    src/sparc_netbsd_mach_dep.s src/sparc_sunos4_mach_dep.s
-
-libgc_static_la_LIBADD = $(libgc_la_LIBADD)
-libgc_static_la_DEPENDENCIES = $(libgc_la_DEPENDENCIES)
-libgc_static_la_LDFLAGS = -static
-
-EXTRA_libgc_static_la_SOURCES = $(EXTRA_libgc_la_SOURCES)
-
-# C++ Interface
-# -------------
+EXTRA_libgc_la_SOURCES = ia64_save_regs_in_stack.s sparc_mach_dep.S \
+    sparc_netbsd_mach_dep.s sparc_sunos4_mach_dep.s
 
 if CPLUSPLUS
-noinst_LTLIBRARIES += libgccpp.la
-pkginclude_HEADERS += include/gc_cpp.h
+# C++ Interface
+# -------------
+lib_LTLIBRARIES += libgccpp.la
+pkginclude_HEADERS += include/gc_allocator.h include/gc_cpp.h
 include_HEADERS += include/extra/gc_cpp.h
 libgccpp_la_SOURCES = gc_cpp.cc
 libgccpp_la_LIBADD = ./libgc.la
-libgccpp_la_LDFLAGS = -version-info 1:3:0 -no-undefined
+libgccpp_la_LDFLAGS = -version-info $(LIBGCCPP_VER_INFO) -no-undefined
 endif
 
-# FIXME: If Visual C++ users use Makefile.am, this should go into
-# pkginclude_HEADERS with proper AM_CONDITIONALization.  Otherwise
-# delete this comment.
+## FIXME: If Visual C++ users use Makefile.am, this should go into
+## pkginclude_HEADERS with proper AM_CONDITIONALization.  Otherwise
+## delete this comment.
 EXTRA_DIST += gc_cpp.cpp
 
 
@@ -136,7 +150,10 @@ EXTRA_DIST += gc_cpp.cpp
 # ----
 
 AM_CXXFLAGS = @GC_CFLAGS@
-AM_CFLAGS = @GC_CFLAGS@
+AM_CFLAGS = $(WERROR_CFLAGS) @GC_CFLAGS@
+
+CFLAGS += $(CFLAGS_EXTRA)
+CXXFLAGS += $(CFLAGS_EXTRA)
 
 ## FIXME: relies on internal code generated by automake.
 ## FIXME: ./configure --enable-dependency-tracking should be used
@@ -151,14 +168,12 @@ AM_CFLAGS = @GC_CFLAGS@
 ## FIXME: we shouldn't have to do this, but automake forces us to.
 ## We use -Wp,-P to strip #line directives.  Irix `as' chokes on
 ## these.
-if COMPILER_XLC
-  ## XLC neither requires nor tolerates the unnecessary assembler goop
+if ASM_WITH_CPP_UNSUPPORTED
   ASM_CPP_OPTIONS =
 else
-  ## We use -Wp,-P to strip #line directives.  Irix `as' chokes on
-  ## these.
   ASM_CPP_OPTIONS = -Wp,-P -x assembler-with-cpp
 endif
+
 .s.lo:
 	$(LTCOMPILE) $(ASM_CPP_OPTIONS) -c $<
 
@@ -177,24 +192,22 @@ CCASFLAGS += $(DEFS)
 
 # documentation which is not installed
 #
-EXTRA_DIST += README.QUICK TODO
+EXTRA_DIST += README.QUICK
 
 # other makefiles
 # :GOTCHA: deliberately we do not include 'Makefile'
 EXTRA_DIST += BCC_MAKEFILE NT_MAKEFILE \
-    OS2_MAKEFILE PCR-Makefile digimars.mak EMX_MAKEFILE \
-    Makefile.direct Makefile.dj SMakefile.amiga \
-    WCC_MAKEFILE autogen.sh build_atomic_ops.sh build_atomic_ops.sh.cygwin \
-    NT_STATIC_THREADS_MAKEFILE NT_X64_STATIC_THREADS_MAKEFILE \
-    NT_X64_THREADS_MAKEFILE CMakeLists.txt tests/CMakeLists.txt
+    OS2_MAKEFILE PCR-Makefile digimars.mak \
+    Makefile.direct SMakefile.amiga WCC_MAKEFILE autogen.sh \
+    CMakeLists.txt tests/CMakeLists.txt
 
 # files used by makefiles other than Makefile.am
 #
-EXTRA_DIST += tools/add_gc_prefix.c tools/gcname.c tools/if_mach.c \
-    tools/if_not_there.c tools/setjmp_t.c tools/threadlibs.c \
-    gc.mak extra/MacOS.c extra/AmigaOS.c \
+EXTRA_DIST += tools/if_mach.c tools/if_not_there.c tools/setjmp_t.c \
+    tools/threadlibs.c gc.mak extra/MacOS.c extra/AmigaOS.c \
     extra/symbian/global_end.cpp extra/symbian/global_start.cpp \
     extra/symbian/init_global_static_roots.cpp extra/symbian.cpp \
+    extra/pcr_interface.c extra/real_malloc.c \
     build/s60v3/bld.inf build/s60v3/libgc.mmp \
     extra/Mac_files/datastart.c extra/Mac_files/dataend.c \
     extra/Mac_files/MacOS_config.h \
@@ -210,5 +223,5 @@ include include/include.am
 include cord/cord.am
 include tests/tests.am
 include doc/doc.am
-# Putting these at the top causes cord to be built first, and not find libgc.a
-# on HP/UX.  There may be a better fix.
+## Putting these at the top causes cord to be built first, and not find
+## libgc.a on HP/UX.  There may be a better fix.

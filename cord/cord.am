@@ -5,7 +5,7 @@
 # and, optionally, at most once during the development (after the release).
 LIBCORD_VER_INFO = 4:0:3
 
-noinst_LTLIBRARIES += libcord.la
+lib_LTLIBRARIES += libcord.la
 
 libcord_la_LIBADD = $(top_builddir)/libgc.la
 libcord_la_LDFLAGS = -version-info $(LIBCORD_VER_INFO) -no-undefined

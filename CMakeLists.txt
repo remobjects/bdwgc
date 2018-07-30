@@ -33,7 +33,9 @@ ADD_DEFINITIONS("-D_CRT_SECURE_NO_DEPRECATE
                  -DALL_INTERIOR_POINTERS -DNO_EXECUTE_PERMISSION")
 
 IF(APPLE)
-    SET(CMAKE_OSX_ARCHITECTURES "ppc;i386;x86_64" CACHE STRING "Build architectures for Mac OS X" FORCE)
+    IF("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "")
+        SET(CMAKE_OSX_ARCHITECTURES "ppc;i386;x86_64" CACHE STRING "Build architectures for Mac OS X" FORCE)
+    ENDIF()
 ENDIF(APPLE)
 
 #LIBATOMIC #TODO
@@ -100,8 +102,6 @@ IF(CMAKE_USE_PTHREADS_INIT)
         ENDIF()
         IF ( HOST MATCHES .*-.*-hpux10.*)
                 MESSAGE("HP/UX 10 POSIX threads are not supported.")
-                ADD_DEFINITIONS(THREAD_LOCAL_ALLOC")
-                ADD_DEFINITIONS(USE_COMPILER_TLS")
         ENDIF()
         IF ( HOST MATCHES .*-.*-netbsd.*)
                 MESSAGE("Only on NetBSD 2.0 or later.")

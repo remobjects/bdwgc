@@ -20,9 +20,7 @@
 
 #include <stdio.h>
 
-#if defined(GC_BUILTIN_ATOMIC) || defined(PARALLEL_MARK) \
-    || (defined(GC_THREADS) && !defined(_WIN32) && !defined(_MSC_VER) \
-        && !defined(__CYGWIN__) && !defined(__MINGW32__))
+#if defined(GC_BUILTIN_ATOMIC) || defined(GC_THREADS)
 
 # include <stdlib.h>
 
@@ -40,6 +38,9 @@
 
   int main(void) {
     AO_t x = 13;
+#   if defined(AO_HAVE_char_load) || defined(AO_HAVE_char_store)
+      unsigned char c = 117;
+#   endif
 #   ifdef AO_HAVE_test_and_set_acquire
         AO_TS_t z = AO_TS_INITIALIZER;
 
@@ -48,7 +49,16 @@
         AO_CLEAR(&z);
 #   endif
     AO_compiler_barrier();
-    AO_nop_full();
+#   ifdef AO_HAVE_nop_full
+      AO_nop_full();
+#   endif
+#   ifdef AO_HAVE_char_load
+      TA_assert(AO_char_load(&c) == 117);
+#   endif
+#   ifdef AO_HAVE_char_store
+      AO_char_store(&c, 119);
+      TA_assert(c == 119);
+#   endif
 #   ifdef AO_HAVE_load_acquire
       TA_assert(AO_load_acquire(&x) == 13);
 #   endif
@@ -57,8 +67,7 @@
       TA_assert(AO_fetch_and_add(&x, (AO_t)(-43)) == 55);
       TA_assert(AO_fetch_and_add1(&x) == 12);
 #   endif
-#   if defined(AO_REQUIRE_CAS) && defined(AO_HAVE_compare_and_swap) \
-       && defined(AO_HAVE_compare_and_swap_release)
+#   ifdef AO_HAVE_compare_and_swap_release
       TA_assert(!AO_compare_and_swap(&x, 14, 42));
       TA_assert(x == 13);
       TA_assert(AO_compare_and_swap_release(&x, 13, 42));
