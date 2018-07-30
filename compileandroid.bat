@@ -3,7 +3,7 @@ set CLANG=c:\p\llvm\llvm-bin32\RelWithDebInfo\bin\clang.exe
 set LLVMAR=c:\p\llvm\llvm-bin32\RelWithDebInfo\bin\llvm-ar.exe
 
 set TRIPLE=x86_64-linux-androideabi
-set COMMONFLAGS=-O3  -c -I include -Wno-deprecated-declarations -Wno-unknown-attributes -Wno-builtin-requires-header -fPIC -DGC_DONT_DEFINE_LINK_MAP -DPLATFORM_ANDROID  -D GC_THREADS -I libatomic_ops\src -D_REENTRANT
+set COMMONFLAGS=-O0 -c -I include -Wno-deprecated-declarations -Wno-unknown-attributes -Wno-builtin-requires-header -fPIC -DGC_DONT_DEFINE_LINK_MAP -DPLATFORM_ANDROID  -D GC_THREADS -I libatomic_ops\src -D_REENTRANT
 set COMPILEFLAGS=%COMMONFLAGS% -I C:\Users\carlokok\AppData\Local\Android\sdk\ndk-bundle\platforms\android-24\arch-x86_64\usr\include 
 del *.o /s /q /f
 echo "Triple: %TRIPLE% RelWithDebInfo"
@@ -12,7 +12,7 @@ echo "Triple: %TRIPLE% RelWithDebInfo"
 
 
 
-set TRIPLE=i686-linux-androideabi
+set TRIPLE=i686-linux-android -mcpu=generic
 set COMPILEFLAGS=%COMMONFLAGS% -I C:\Users\carlokok\AppData\Local\Android\sdk\ndk-bundle\platforms\android-24\arch-x86\usr\include -I include -Wno-deprecated-declarations -Wno-unknown-attributes -Wno-builtin-requires-header -fPIC -DGC_DONT_DEFINE_LINK_MAP -DPLATFORM_ANDROID -D GC_THREADS -I libatomic_ops\src -D_REENTRANT
 del *.o /s /q /f
 echo "Triple: %TRIPLE% RelWithDebInfo"
@@ -23,7 +23,7 @@ echo "Triple: %TRIPLE% RelWithDebInfo"
 
 
 
-set TRIPLE=x86_64-linux-androideabi
+set TRIPLE=x86_64-linux-android -mcpu=generic
 set COMPILEFLAGS=%COMMONFLAGS% -I C:\Users\carlokok\AppData\Local\Android\sdk\ndk-bundle\platforms\android-24\arch-x86_64\usr\include -I include -Wno-deprecated-declarations -Wno-unknown-attributes -Wno-builtin-requires-header -fPIC -DGC_DONT_DEFINE_LINK_MAP -DPLATFORM_ANDROID -D GC_THREADS -I libatomic_ops\src -D_REENTRANT
 del *.o /s /q /f
 echo "Triple: %TRIPLE% RelWithDebInfo"
