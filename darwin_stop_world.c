@@ -23,7 +23,7 @@
 
 #include <sys/sysctl.h>
 #include <mach/machine.h>
-#include <CoreFoundation/CoreFoundation.h>
+//#include <CoreFoundation/CoreFoundation.h>
 
 /* From "Inside Mac OS X - Mach-O Runtime Architecture" published by Apple
    Page 49:
