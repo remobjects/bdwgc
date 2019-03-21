@@ -61,7 +61,7 @@
 # include "gc_typed.h"
 #endif
 
-#include "private/gc_priv.h"    /* For output, locking, MIN_WORDS,      */
+#include "private/gc_priv.h"    /* For output, locking,                 */
                                 /* some statistics and gcconfig.h.      */
 
 #if defined(MSWIN32) || defined(MSWINCE)
@@ -72,7 +72,7 @@
 # include <windows.h>
 #endif /* MSWIN32 || MSWINCE */
 
-#ifdef GC_PRINT_VERBOSE_STATS
+#if defined(GC_PRINT_VERBOSE_STATS) || defined(GCTEST_PRINT_VERBOSE)
 # define print_stats VERBOSE
 # define INIT_PRINT_STATS /* empty */
 #else
@@ -148,6 +148,20 @@
 
 #include <stdarg.h>
 
+#ifdef TEST_MANUAL_VDB
+# define INIT_MANUAL_VDB_ALLOWED GC_set_manual_vdb_allowed(1)
+#elif !defined(SMALL_CONFIG)
+# define INIT_MANUAL_VDB_ALLOWED GC_set_manual_vdb_allowed(0)
+#else
+# define INIT_MANUAL_VDB_ALLOWED /* empty */
+#endif
+
+#ifdef TEST_PAGES_EXECUTABLE
+# define INIT_PAGES_EXECUTABLE GC_set_pages_executable(1)
+#else
+# define INIT_PAGES_EXECUTABLE (void)0
+#endif
+
 #define CHECK_GCLIB_VERSION \
             if (GC_get_version() != ((GC_VERSION_MAJOR<<16) \
                                     | (GC_VERSION_MINOR<<8) \
@@ -177,7 +191,8 @@
 #endif
 
 #define GC_COND_INIT() \
-    INIT_FORK_SUPPORT; GC_OPT_INIT; CHECK_GCLIB_VERSION; \
+    INIT_FORK_SUPPORT; INIT_MANUAL_VDB_ALLOWED; INIT_PAGES_EXECUTABLE; \
+    GC_OPT_INIT; CHECK_GCLIB_VERSION; \
     INIT_PRINT_STATS; INIT_FIND_LEAK; INIT_PERF_MEASUREMENT
 
 #define CHECK_OUT_OF_MEMORY(p) \
@@ -187,7 +202,7 @@
             }
 
 /* Define AO primitives for a single-threaded mode. */
-#ifndef AO_CLEAR
+#ifndef AO_HAVE_compiler_barrier
   /* AO_t not defined. */
 # define AO_t GC_word
 #endif
@@ -840,7 +855,10 @@ typedef struct treenode {
     struct treenode * rchild;
 } tn;
 
-int finalizable_count = 0;
+#ifndef GC_NO_FINALIZATION
+  int finalizable_count = 0;
+#endif
+
 int finalized_count = 0;
 int dropped_something = 0;
 
@@ -912,8 +930,8 @@ tn * mktree(int n)
         {
           FINALIZER_LOCK();
                 /* Losing a count here causes erroneous report of failure. */
-          finalizable_count++;
 #         ifndef GC_NO_FINALIZATION
+            finalizable_count++;
             my_index = live_indicators_count++;
 #         endif
           FINALIZER_UNLOCK();
@@ -1294,6 +1312,10 @@ void * GC_CALLBACK inc_int_counter(void *pcounter)
  return NULL;
 }
 
+#ifndef MIN_WORDS
+# define MIN_WORDS 2
+#endif
+
 void run_one_test(void)
 {
 #   ifndef DBG_HDRS_ALL
@@ -1450,6 +1472,8 @@ void run_one_test(void)
              GC_FREE(GC_MALLOC_ATOMIC(0));
              test_generic_malloc_or_special(GC_malloc_atomic(1));
              AO_fetch_and_add1(&atomic_count);
+             GC_FREE(GC_MALLOC_ATOMIC_IGNORE_OFF_PAGE(1));
+             GC_FREE(GC_MALLOC_IGNORE_OFF_PAGE(2));
            }
          }
 #   ifdef GC_GCJ_SUPPORT
@@ -1484,19 +1508,23 @@ void run_one_test(void)
             FAIL;
           }
           if (print_stats)
-            GC_log_printf("Forked child process\n");
+            GC_log_printf("Forked child process, pid=%ld\n", (long)pid);
           if (waitpid(pid, &wstatus, 0) == -1) {
             GC_printf("Wait for child process failed\n");
             FAIL;
           }
           if (!WIFEXITED(wstatus) || WEXITSTATUS(wstatus) != 0) {
-            GC_printf("Child process failed, status= 0x%x\n", wstatus);
+            GC_printf("Child process failed, pid=%ld, status=0x%x\n",
+                      (long)pid, wstatus);
             FAIL;
           }
         } else {
+          pid_t child_pid = getpid();
+
           GC_atfork_child();
           if (print_stats)
-            GC_log_printf("Started a child process\n");
+            GC_log_printf("Started a child process, pid=%ld\n",
+                          (long)child_pid);
 #         ifdef THREADS
 #           ifdef PARALLEL_MARK
               GC_gcollect(); /* no parallel markers */
@@ -1505,11 +1533,15 @@ void run_one_test(void)
 #         endif
           GC_gcollect();
 #         ifdef THREADS
+            if (print_stats)
+              GC_log_printf("Starting tiny reverse test, pid=%ld\n",
+                            (long)child_pid);
             tiny_reverse_test(0);
             GC_gcollect();
 #         endif
           if (print_stats)
-            GC_log_printf("Finished a child process\n");
+            GC_log_printf("Finished a child process, pid=%ld\n",
+                          (long)child_pid);
           exit(0);
         }
 #   endif
@@ -1522,7 +1554,7 @@ void run_one_test(void)
         if (print_stats) {
           GET_TIME(reverse_time);
           time_diff = MS_TIME_DIFF(reverse_time, start_time);
-          GC_log_printf("-------------Finished reverse_test at time %u (%p)\n",
+          GC_log_printf("Finished reverse_test at time %u (%p)\n",
                         (unsigned) time_diff, (void *)&start_time);
         }
 #   endif
@@ -1534,19 +1566,23 @@ void run_one_test(void)
 
           GET_TIME(typed_time);
           time_diff = MS_TIME_DIFF(typed_time, start_time);
-          GC_log_printf("-------------Finished typed_test at time %u (%p)\n",
+          GC_log_printf("Finished typed_test at time %u (%p)\n",
                         (unsigned) time_diff, (void *)&start_time);
         }
 #     endif
 #   endif /* DBG_HDRS_ALL */
     tree_test();
+#   ifdef TEST_WITH_SYSTEM_MALLOC
+      free(calloc(1,1));
+      free(realloc(NULL, 64));
+#   endif
 #   ifndef NO_CLOCK
       if (print_stats) {
         CLOCK_TYPE tree_time;
 
         GET_TIME(tree_time);
         time_diff = MS_TIME_DIFF(tree_time, start_time);
-        GC_log_printf("-------------Finished tree_test at time %u (%p)\n",
+        GC_log_printf("Finished tree_test at time %u (%p)\n",
                       (unsigned) time_diff, (void *)&start_time);
       }
 #   endif
@@ -1556,9 +1592,8 @@ void run_one_test(void)
       if (print_stats) {
         GET_TIME(reverse_time);
         time_diff = MS_TIME_DIFF(reverse_time, start_time);
-        GC_log_printf(
-                "-------------Finished second reverse_test at time %u (%p)\n",
-                (unsigned)time_diff, (void *)&start_time);
+        GC_log_printf("Finished second reverse_test at time %u (%p)\n",
+                      (unsigned)time_diff, (void *)&start_time);
       }
 #   endif
     /* GC_allocate_ml and GC_need_to_lock are no longer exported, and   */
@@ -1568,6 +1603,13 @@ void run_one_test(void)
       if (print_stats)
         GC_log_printf("Finished %p\n", (void *)&start_time);
 #   endif
+}
+
+/* Execute some tests after termination of other test threads (if any). */
+void run_single_threaded_test(void) {
+    GC_disable();
+    GC_FREE(GC_MALLOC(100));
+    GC_enable();
 }
 
 void GC_CALLBACK reachable_objs_counter(void *obj, size_t size,
@@ -1683,8 +1725,6 @@ void check_heap_stats(void)
                   (int)uncollectable_count);
     GC_printf("Allocated %d atomic objects\n", (int)atomic_count);
     GC_printf("Reallocated %d objects\n", (int)realloc_count);
-    GC_printf("Finalized %d/%d objects - ",
-                  finalized_count, finalizable_count);
 # ifndef GC_NO_FINALIZATION
     if (!GC_get_find_leak()) {
       int still_live = 0;
@@ -1694,16 +1734,20 @@ void check_heap_stats(void)
 
 #     ifdef FINALIZE_ON_DEMAND
         if (finalized_count != late_finalize_count) {
-            GC_printf("Demand finalization error\n");
-            FAIL;
+          GC_printf("Finalized %d/%d objects - demand finalization error\n",
+                    finalized_count, finalizable_count);
+          FAIL;
         }
 #     endif
       if (finalized_count > finalizable_count
           || finalized_count < finalizable_count/2) {
-        GC_printf("finalization is probably broken\n");
+        GC_printf("Finalized %d/%d objects - "
+                  "finalization is probably broken\n",
+                  finalized_count, finalizable_count);
         FAIL;
       } else {
-        GC_printf("finalization is probably ok\n");
+        GC_printf("Finalized %d/%d objects - finalization is probably OK\n",
+                  finalized_count, finalizable_count);
       }
       for (i = 0; i < MAX_FINALIZED; i++) {
         if (live_indicators[i] != 0) {
@@ -1775,14 +1819,18 @@ void check_heap_stats(void)
 #   ifdef THREADS
       GC_unregister_my_thread(); /* just to check it works (for main) */
 #   endif
-    GC_printf("Completed %u collections", (unsigned)GC_get_gc_no());
-#   ifndef NO_CLOCK
-      GC_printf(" in %lu msecs", GC_get_full_gc_total_time());
+#   ifdef NO_CLOCK
+      GC_printf("Completed %u collections\n", (unsigned)GC_get_gc_no());
+#   elif !defined(PARALLEL_MARK)
+      GC_printf("Completed %u collections in %lu ms\n",
+                (unsigned)GC_get_gc_no(), GC_get_full_gc_total_time());
+#   else
+      GC_printf("Completed %u collections in %lu ms"
+                " (using %d marker threads)\n",
+                (unsigned)GC_get_gc_no(), GC_get_full_gc_total_time(),
+                GC_get_parallel() + 1);
 #   endif
-#   ifdef PARALLEL_MARK
-      GC_printf(" (using %d marker threads)", GC_get_parallel() + 1);
-#   endif
-    GC_printf("\n" "Collector appears to work\n");
+    GC_printf("Collector appears to work\n");
 }
 
 #if defined(MACOS)
@@ -1862,7 +1910,13 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {
-        GC_printf("Switched to incremental mode\n");
+#       ifndef SMALL_CONFIG
+          if (GC_get_manual_vdb_allowed()) {
+            GC_printf("Switched to incremental mode (manual VDB)\n");
+          } else
+#       endif
+        /* else */ {
+          GC_printf("Switched to incremental mode\n");
 #       ifdef PROC_VDB
           GC_printf("Reading dirty bits from /proc\n");
 #       elif defined(GWW_VDB)
@@ -1873,10 +1927,12 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
 #       elif defined(MPROTECT_VDB)
           GC_printf("Emulating dirty bits with mprotect/signals\n");
 #       endif /* MPROTECT_VDB && !GWW_VDB */
+        }
       }
 #   endif
     set_print_procs();
     run_one_test();
+    run_single_threaded_test();
     check_heap_stats();
 #   ifndef MSWINCE
       fflush(stdout);
@@ -1943,13 +1999,11 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
        UNTESTED(GC_set_on_collection_event);
        UNTESTED(GC_set_on_heap_resize);
        UNTESTED(GC_set_oom_fn);
-       UNTESTED(GC_set_pages_executable);
        UNTESTED(GC_set_push_other_roots);
        UNTESTED(GC_set_start_callback);
        UNTESTED(GC_set_stop_func);
        UNTESTED(GC_set_time_limit);
        UNTESTED(GC_malloc_explicitly_typed_ignore_off_page);
-       UNTESTED(GC_debug_change_stubborn);
        UNTESTED(GC_debug_strndup);
        UNTESTED(GC_deinit);
        UNTESTED(GC_strndup);
@@ -1969,7 +2023,12 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
 #      ifdef GC_GCJ_SUPPORT
          UNTESTED(GC_gcj_malloc_ignore_off_page);
 #      endif
+#      ifndef NO_CLOCK
+         UNTESTED(GC_get_time_limit_tv);
+         UNTESTED(GC_set_time_limit_tv);
+#      endif
 #      ifndef NO_DEBUGGING
+         UNTESTED(GC_dump);
          UNTESTED(GC_dump_regions);
          UNTESTED(GC_is_tmp_root);
          UNTESTED(GC_print_free_list);
@@ -2184,6 +2243,7 @@ DWORD __stdcall thr_window(void * arg GC_ATTR_UNUSED)
     if (WaitForSingleObject(win_thr_h, INFINITE) != WAIT_OBJECT_0)
       FAIL;
 # endif
+  run_single_threaded_test();
   check_heap_stats();
 # if defined(CPPCHECK) && defined(GC_WIN32_THREADS)
     UNTESTED(GC_ExitThread);
@@ -2225,6 +2285,7 @@ int test(void)
         != PCR_ERes_okay || code != 0) {
         GC_printf("Thread 2 failed\n");
     }
+    run_single_threaded_test();
     check_heap_stats();
     return(0);
 }
@@ -2294,10 +2355,17 @@ int main(void)
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {
-        GC_printf("Switched to incremental mode\n");
-#       ifdef MPROTECT_VDB
-          GC_printf("Emulating dirty bits with mprotect/signals\n");
+#       ifndef SMALL_CONFIG
+          if (GC_get_manual_vdb_allowed()) {
+            GC_printf("Switched to incremental mode (manual VDB)\n");
+          } else
 #       endif
+        /* else */ {
+          GC_printf("Switched to incremental mode\n");
+#         ifdef MPROTECT_VDB
+            GC_printf("Emulating dirty bits with mprotect/signals\n");
+#         endif
+        }
       }
 #   endif
     GC_set_min_bytes_allocd(1);
@@ -2330,6 +2398,7 @@ int main(void)
         }
       }
 #   endif
+    run_single_threaded_test();
     check_heap_stats();
     (void)fflush(stdout);
     (void)pthread_attr_destroy(&attr);
@@ -2342,6 +2411,9 @@ int main(void)
       UNTESTED(GC_set_thr_restart_signal);
       UNTESTED(GC_stop_world_external);
       UNTESTED(GC_start_world_external);
+#     if defined(GC_DARWIN_THREADS) || defined(GC_OPENBSD_UTHREADS)
+        UNTESTED(GC_get_thr_restart_signal);
+#     endif
 #     ifndef GC_NO_DLOPEN
         UNTESTED(GC_dlopen);
 #     endif

@@ -161,7 +161,7 @@ GC_API GC_on_collection_event_proc GC_CALL GC_get_on_collection_event(void);
                         /* Both the supplied setter and the getter      */
                         /* acquire the GC lock (to avoid data races).   */
 
-#ifdef GC_THREADS
+#if defined(GC_THREADS) || (defined(GC_BUILD) && defined(NN_PLATFORM_CTR))
   typedef void (GC_CALLBACK * GC_on_thread_event_proc)(GC_EventType,
                                                 void * /* thread_id */);
                         /* Invoked when a thread is suspended or        */
@@ -378,9 +378,12 @@ GC_API int GC_CALL GC_get_dont_precollect(void);
 
 GC_API GC_ATTR_DEPRECATED unsigned long GC_time_limit;
                                /* If incremental collection is enabled, */
-                               /* We try to terminate collections       */
-                               /* after this many milliseconds.  Not a  */
-                               /* hard time bound.  Setting this to     */
+                               /* we try to terminate collections       */
+                               /* after this many milliseconds (plus    */
+                               /* the amount of nanoseconds as given in */
+                               /* the latest GC_set_time_limit_tv call, */
+                               /* if any).  Not a hard time bound.      */
+                               /* Setting this variable to              */
                                /* GC_TIME_UNLIMITED will essentially    */
                                /* disable incremental collection while  */
                                /* leaving generational collection       */
@@ -393,10 +396,31 @@ GC_API GC_ATTR_DEPRECATED unsigned long GC_time_limit;
                         /* GC_call_with_alloc_lock() is required to     */
                         /* avoid data races (if the value is modified   */
                         /* after the GC is put to multi-threaded mode). */
+                        /* The setter does not update the value of the  */
+                        /* nanosecond part of the time limit (it is     */
+                        /* zero unless ever set by GC_set_time_limit_tv */
+                        /* call).                                       */
 GC_API void GC_CALL GC_set_time_limit(unsigned long);
 GC_API unsigned long GC_CALL GC_get_time_limit(void);
 
+/* A portable type definition of time with a nanosecond precision.      */
+struct GC_timeval_s {
+  unsigned long tv_ms;  /* time in milliseconds */
+  unsigned long tv_nsec;/* nanoseconds fraction (<1000000) */
+};
+
 /* Public procedures */
+
+/* Set/get the time limit of the incremental collections.  This is      */
+/* similar to GC_set_time_limit and GC_get_time_limit but the time is   */
+/* provided with the nanosecond precision.  The value of tv_nsec part   */
+/* should be less than a million.  If the value of tv_ms part is        */
+/* GC_TIME_UNLIMITED then tv_nsec is ignored.  Initially, the value of  */
+/* tv_nsec part of the time limit is zero.  The functions do not use    */
+/* any synchronization.  Defined only if the library has been compiled  */
+/* without NO_CLOCK.                                                    */
+GC_API void GC_CALL GC_set_time_limit_tv(struct GC_timeval_s);
+GC_API struct GC_timeval_s GC_CALL GC_get_time_limit_tv(void);
 
 /* Tell the collector to start various performance measurements.        */
 /* Only the total time taken by full collections is calculated, as      */
@@ -525,8 +549,8 @@ GC_API GC_ATTR_DEPRECATED void GC_CALL GC_change_stubborn(const void *);
 
 /* Inform the collector that the object has been changed.               */
 /* Only non-NULL pointer stores into the object are considered to be    */
-/* changes.  Matters only if the library has been compiled with         */
-/* MANUAL_VDB defined (otherwise the function does nothing).            */
+/* changes.  Matters only if the incremental collection is enabled in   */
+/* the manual VDB mode (otherwise the function does nothing).           */
 /* Should be followed typically by GC_reachable_here called for each    */
 /* of the stored pointers.                                              */
 GC_API void GC_CALL GC_end_stubborn_change(const void *) GC_ATTR_NONNULL(1);
@@ -804,6 +828,18 @@ GC_API int GC_CALL GC_is_disabled(void);
 /* both functions is equal.                                             */
 GC_API void GC_CALL GC_enable(void);
 
+/* Select whether to use the manual VDB mode for the incremental        */
+/* collection.  Has no effect if called after enabling the incremental  */
+/* collection.  The default value is off unless the collector is        */
+/* compiled with MANUAL_VDB defined.  The manual VDB mode should be     */
+/* used only if the client has the appropriate GC_END_STUBBORN_CHANGE   */
+/* and GC_reachable_here (or, alternatively, GC_PTR_STORE_AND_DIRTY)    */
+/* calls (to ensure proper write barriers).  Both the setter and getter */
+/* are not synchronized, and are defined only if the library has been   */
+/* compiled without SMALL_CONFIG.                                       */
+GC_API void GC_CALL GC_set_manual_vdb_allowed(int);
+GC_API int GC_CALL GC_get_manual_vdb_allowed(void);
+
 /* Enable incremental/generational collection.  Not advisable unless    */
 /* dirty bits are available or most heap objects are pointer-free       */
 /* (atomic) or immutable.  Don't use in leak finding mode.  Ignored if  */
@@ -902,11 +938,7 @@ GC_API void GC_CALL GC_debug_free(void *);
 GC_API void * GC_CALL GC_debug_realloc(void * /* old_object */,
                         size_t /* new_size_in_bytes */, GC_EXTRA_PARAMS)
                         /* 'realloc' attr */ GC_ATTR_ALLOC_SIZE(2);
-GC_API
-#if !defined(CPPCHECK)
-  GC_ATTR_DEPRECATED
-#endif
-void GC_CALL GC_debug_change_stubborn(const void *);
+GC_API GC_ATTR_DEPRECATED void GC_CALL GC_debug_change_stubborn(const void *);
 GC_API void GC_CALL GC_debug_end_stubborn_change(const void *)
                                                         GC_ATTR_NONNULL(1);
 
@@ -1316,7 +1348,12 @@ GC_API int GC_CALL GC_invoke_finalizers(void);
                 __asm__ __volatile__(" " : : "X"(ptr) : "memory")
 #else
   GC_API void GC_CALL GC_noop1(GC_word);
-# define GC_reachable_here(ptr) GC_noop1((GC_word)(ptr))
+# ifdef LINT2
+#   define GC_reachable_here(ptr) GC_noop1(~(GC_word)(ptr)^(~(GC_word)0))
+                /* The expression matches the one of COVERT_DATAFLOW(). */
+# else
+#   define GC_reachable_here(ptr) GC_noop1((GC_word)(ptr))
+# endif
 #endif
 
 /* GC_set_warn_proc can be used to redirect or filter warning messages. */
@@ -1356,6 +1393,7 @@ GC_API void GC_CALL GC_abort_on_oom(void);
 /* that finalization code will arrange for hidden pointers to   */
 /* disappear.  Otherwise objects can be accessed after they     */
 /* have been collected.                                         */
+/* Should not be used in the leak-finding mode.                 */
 /* Note that putting pointers in atomic objects or in           */
 /* non-pointer slots of "typed" objects is equivalent to        */
 /* disguising them in this way, and may have other advantages.  */
@@ -1626,7 +1664,7 @@ GC_API void GC_CALL GC_dump_finalization(void);
 #else /* !GC_DEBUG || !__GNUC__ */
   /* We can't do this right without typeof, which ANSI decided was not    */
   /* sufficiently useful.  Without it we resort to the non-debug version. */
-  /* FIXME: This should eventually support C++0x decltype.                */
+  /* TODO: This should eventually support C++0x decltype. */
 # define GC_PTR_ADD(x, n) ((x)+(n))
 # define GC_PRE_INCR(x, n) ((x) += (n))
 # define GC_POST_INCR(x) ((x)++)
@@ -1867,7 +1905,7 @@ GC_API int GC_CALL GC_get_force_unmap_on_gcollect(void);
     extern int _data_start__[], _data_end__[], _bss_start__[], _bss_end__[];
 #   define GC_DATASTART ((GC_word)_data_start__ < (GC_word)_bss_start__ \
                          ? (void *)_data_start__ : (void *)_bss_start__)
-#  define GC_DATAEND ((GC_word)_data_end__ > (GC_word)_bss_end__ \
+#   define GC_DATAEND ((GC_word)_data_end__ > (GC_word)_bss_end__ \
                       ? (void *)_data_end__ : (void *)_bss_end__)
 # endif /* !__x86_64__ */
 # define GC_INIT_CONF_ROOTS GC_add_roots(GC_DATASTART, GC_DATAEND); \
@@ -1879,34 +1917,16 @@ GC_API int GC_CALL GC_get_force_unmap_on_gcollect(void);
 # define GC_DATAEND ((void *)((ulong)_end))
 # define GC_INIT_CONF_ROOTS GC_add_roots(GC_DATASTART, GC_DATAEND)
 #elif (defined(HOST_ANDROID) || defined(__ANDROID__)) \
-      && !defined(GC_NOT_DLL) && defined(IGNORE_DYNAMIC_LOADING)
-  /* It causes the entire binary section of memory be pushed as a root. */
-  /* This might be a bad idea though because on some Android devices    */
-  /* some of the binary data might become unmapped thus causing SIGSEGV */
-  /* with code SEGV_MAPERR.                                             */
-# pragma weak _etext
-# pragma weak __data_start
+      && defined(IGNORE_DYNAMIC_LOADING)
+  /* This is ugly but seems the only way to register data roots of the  */
+  /* client shared library if the GC dynamic loading support is off.    */
 # pragma weak __dso_handle
-  extern int _etext[], __data_start[], __dso_handle[];
-# pragma weak __end__
-  extern int __end__[], _end[];
-  /* Explicitly register caller static data roots.  Workaround for      */
-  /* __data_start: NDK "gold" linker might miss it or place it          */
-  /* incorrectly, __dso_handle is an alternative data start reference.  */
-  /* Workaround for _end: NDK Clang 3.5+ does not place it at correct   */
-  /* offset (as of NDK r10e) but "bfd" linker provides __end__ symbol   */
-  /* that could be used instead.                                        */
-# define GC_INIT_CONF_ROOTS \
-                (void)((GC_word)__data_start < (GC_word)_etext \
-                        && (GC_word)_etext < (GC_word)__dso_handle \
-                        ? (__end__ != 0 \
-                            ? (GC_add_roots(__dso_handle, __end__), 0) \
-                            : (GC_word)__dso_handle < (GC_word)_end \
-                            ? (GC_add_roots(__dso_handle, _end), 0) : 0) \
-                        : __data_start != 0 ? (__end__ != 0 \
-                            ? (GC_add_roots(__data_start, __end__), 0) \
-                            : (GC_word)__data_start < (GC_word)_end \
-                            ? (GC_add_roots(__data_start, _end), 0) : 0) : 0)
+  extern int __dso_handle[];
+  GC_API void * GC_CALL GC_find_limit(void * /* start */, int /* up */);
+# define GC_INIT_CONF_ROOTS (void)(__dso_handle != 0 \
+                                   ? (GC_add_roots(__dso_handle, \
+                                            GC_find_limit(__dso_handle, \
+                                                          1 /*up*/)), 0) : 0)
 #else
 # define GC_INIT_CONF_ROOTS /* empty */
 #endif
@@ -1953,7 +1973,7 @@ GC_API int GC_CALL GC_get_force_unmap_on_gcollect(void);
 #endif
 
 #if defined(GC_TIME_LIMIT) && !defined(CPPCHECK)
-  /* Set GC_time_limit to the desired value at start-up */
+  /* Set GC_time_limit (in ms) to the desired value at start-up. */
 # define GC_INIT_CONF_TIME_LIMIT GC_set_time_limit(GC_TIME_LIMIT)
 #else
 # define GC_INIT_CONF_TIME_LIMIT /* empty */

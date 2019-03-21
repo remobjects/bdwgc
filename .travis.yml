@@ -22,7 +22,7 @@ matrix:
       coverity_scan:
         project:
           name: ivmai/bdwgc
-          version: 7.7.0
+          version: 8.1.0
         notification_email: ivmai@mail.ru
         branch_pattern: master
         build_command_prepend: "./configure --enable-cplusplus --disable-shared --enable-single-obj-compilation"
@@ -37,6 +37,20 @@ matrix:
   - os: linux
     env:
     - MAKEFILE_TARGETS="dist"
+  - os: linux
+    env:
+    - CPPCHECK_ENABLE="--enable=unusedFunction -I libatomic_ops/src extra/gc.c tests/*.c"
+  - os: linux
+    env:
+    - CPPCHECK_ENABLE="--enable=unusedFunction --force -D GC_BUILTIN_ATOMIC *.cc cord/*.c cord/tests/*.c tests/*.c tests/*.cc"
+    - CPPCHECK_OUT_FILTER="Z"
+    - NO_CLONE_LIBATOMIC_OPS=true
+  - os: linux
+    env:
+    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.c"
+  - os: linux
+    env:
+    - CPPCHECK_ENABLE="-j4 --enable=information,performance,portability,style,warning --force -U GC_PRIVATE_H -I libatomic_ops/src *.cc cord/*.c cord/tests/*.c extra/AmigaOS.c extra/MacOS.c extra/msvc_dbg.c extra/real_malloc.c extra/symbian.cpp tests/*.c tests/*.cc tools/*.c"
   - os: linux
     compiler: gcc
     env:
@@ -90,12 +104,12 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-    - CFLAGS_EXTRA="-D DEFAULT_STACK_MAYBE_SMALL -D ENABLE_TRACE -D EMPTY_GETENV_RESULTS -D GC_ALWAYS_MULTITHREADED -D GC_NETBSD_THREADS_WORKAROUND -D CPPCHECK"
+    - CFLAGS_EXTRA="-D BSD_TIME -D DEFAULT_STACK_MAYBE_SMALL -D ENABLE_TRACE -D EMPTY_GETENV_RESULTS -D GC_ALWAYS_MULTITHREADED -D GC_NETBSD_THREADS_WORKAROUND -D CPPCHECK"
     - CONF_OPTIONS="--enable-cplusplus"
   - os: linux
     compiler: clang
     env:
-    - CFLAGS_EXTRA="-march=native -D _FORTIFY_SOURCE=2 -D DEFAULT_VDB"
+    - CFLAGS_EXTRA="-march=native -D _FORTIFY_SOURCE=2 -D DEFAULT_VDB -D TEST_WITH_SYSTEM_MALLOC"
     - CONF_OPTIONS="--with-libatomic-ops=no --enable-cplusplus --disable-handle-fork"
   - os: linux
     addons:
@@ -105,11 +119,27 @@ matrix:
     compiler: gcc
     env:
     - CONF_OPTIONS="--with-libatomic-ops=yes --enable-gc-assertions --enable-cplusplus"
+    - CFLAGS_EXTRA="-D TEST_PAGES_EXECUTABLE"
     - NO_CLONE_LIBATOMIC_OPS=true
   - os: osx
     env:
     - CFLAGS_EXTRA="-march=native -D _FORTIFY_SOURCE=2 -D AO_DISABLE_GCC_ATOMICS"
     - CONF_OPTIONS="--with-libatomic-ops=no --enable-munmap --enable-cplusplus --enable-static"
+  - os: linux
+    compiler: gcc
+    env:
+    - CONF_CFLAGS="-D AO_USE_PTHREAD_DEFS"
+    - CONF_OPTIONS="--with-libatomic-ops=no --enable-gc-assertions --enable-cplusplus --enable-static"
+  - os: linux
+    addons:
+      apt:
+        packages:
+        - libatomic-ops-dev
+    compiler: clang
+    env:
+    - CONF_CFLAGS="-D AO_USE_PTHREAD_DEFS"
+    - CONF_OPTIONS="--with-libatomic-ops=yes --enable-gc-assertions --enable-cplusplus --enable-static"
+    - NO_CLONE_LIBATOMIC_OPS=true
   - os: linux
     compiler: gcc
     env:
@@ -142,13 +172,18 @@ matrix:
   - os: linux
     compiler: clang
     env:
-    - CFLAGS_EXTRA="-D MANUAL_VDB"
+    - CFLAGS_EXTRA="-D TEST_MANUAL_VDB"
     - CONF_OPTIONS="--enable-gc-assertions --disable-parallel-mark"
   - os: linux
     compiler: gcc
     env:
-    - CFLAGS_EXTRA="-D MANUAL_VDB"
+    - CFLAGS_EXTRA="-D TEST_MANUAL_VDB"
     - CONF_OPTIONS="--enable-gc-assertions --disable-munmap"
+  - os: linux
+    compiler: gcc
+    env:
+    - CFLAGS_EXTRA="-D FIND_LEAK -D SKIP_LEAKED_OBJECTS_PRINTING"
+    - CONF_OPTIONS="--enable-gc-assertions --enable-cplusplus"
   - os: linux
     compiler: gcc
     env:
@@ -192,6 +227,9 @@ matrix:
     env:
     - CONF_OPTIONS="--enable-large-config --enable-cplusplus --disable-shared --enable-static"
     - NO_CLONE_LIBATOMIC_OPS=true
+  - os: osx
+    env:
+    - CONF_OPTIONS="--enable-cplusplus --disable-shared --enable-static"
   - os: osx
     env:
     - CONF_OPTIONS="--enable-large-config --enable-cplusplus --disable-handle-fork"
@@ -262,14 +300,6 @@ matrix:
     env:
     - CSA_CHECK=true
     - CFLAGS_EXTRA="-D ALL_INTERIOR_POINTERS -D CHECKSUMS -D DBG_HDRS_ALL -D DEBUG_THREADS -D ENABLE_TRACE -D GC_ALWAYS_MULTITHREADED -D GC_ASSERTIONS -D GC_ATOMIC_UNCOLLECTABLE -D GC_ENABLE_SUSPEND_THREAD -D GC_GCJ_SUPPORT -D GC_PRINT_BACK_HEIGHT -D GC_THREADS -D HANDLE_FORK -D JAVA_FINALIZATION -D KEEP_BACK_PTRS -D MAKE_BACK_GRAPH -D PARALLEL_MARK -D PRINT_BLACK_LIST -D THREAD_LOCAL_ALLOC -D USE_MMAP -D USE_MUNMAP"
-  - os: linux
-    env:
-    - CPPCHECK_ENABLE="-j16 --enable=information,performance,portability,style,warning extra/AmigaOS.c extra/MacOS.c extra/msvc_dbg.c extra/real_malloc.c extra/symbian.cpp"
-    sudo: required
-  - os: linux
-    env:
-    - CPPCHECK_ENABLE="--enable=unusedFunction"
-    sudo: required
   - os: linux
     compiler: clang
     env:
@@ -496,7 +526,7 @@ matrix:
     compiler: gcc
     env:
     - CC_FOR_CHECK=g++
-    - CFLAGS_EXTRA="-O3 -Wall -Wextra -Werror -D MANUAL_VDB"
+    - CFLAGS_EXTRA="-O3 -Wall -Wextra -Werror -D TEST_MANUAL_VDB"
     - MAKEFILE_NAME=Makefile.direct
     - MAKEFILE_TARGETS="cords"
     - MAKEFILE_TARGETS_CHECK="cord/de check"
@@ -526,27 +556,29 @@ matrix:
 
 before_install:
 - if [[ "$CPPCHECK_ENABLE" != "" ]]; then
+    CPPCHECK_VER=master;
     git clone --depth=3 https://github.com/danmar/cppcheck.git
-            ~/cppcheck -b master;
+            ~/cppcheck -b $CPPCHECK_VER;
     make --directory ~/cppcheck -j CXXFLAGS="-O3 -march=native -D NDEBUG";
   fi
 - if [[ "$AUTOMAKE_VER" != "" || "$LIBTOOL_VER" != ""
         || "$M4_VER" != "" ]]; then
     GNUTOOLS_ROOT=`pwd`/../gnu-tools;
     export PATH=$GNUTOOLS_ROOT/bin:$PATH;
+    GNU_DOWNLOAD_SITE=https://ftp.gnu.org/gnu;
   fi
 - if [[ "$M4_VER" != "" ]]; then
-    M4_XZ_URL=https://ftp.gnu.org/gnu/m4/m4-$M4_VER.tar.xz;
+    M4_XZ_URL=$GNU_DOWNLOAD_SITE/m4/m4-$M4_VER.tar.xz;
     wget -O - $M4_XZ_URL | tar xf - --xz --directory ~;
     (cd ~/m4-$M4_VER && ./configure --prefix=$GNUTOOLS_ROOT && make -j check && make install);
   fi
 - if [[ "$LIBTOOL_VER" != "" ]]; then
-    LIBTOOL_XZ_URL=https://ftp.gnu.org/gnu/libtool/libtool-$LIBTOOL_VER.tar.xz;
+    LIBTOOL_XZ_URL=$GNU_DOWNLOAD_SITE/libtool/libtool-$LIBTOOL_VER.tar.xz;
     wget -O - $LIBTOOL_XZ_URL | tar xf - --xz --directory ~;
     (cd ~/libtool-$LIBTOOL_VER && ./configure --prefix=$GNUTOOLS_ROOT && make -j && make install);
   fi
 - if [[ "$AUTOMAKE_VER" != "" ]]; then
-    AUTOMAKE_XZ_URL=https://ftp.gnu.org/gnu/automake/automake-$AUTOMAKE_VER.tar.xz;
+    AUTOMAKE_XZ_URL=$GNU_DOWNLOAD_SITE/automake/automake-$AUTOMAKE_VER.tar.xz;
     wget -O - $AUTOMAKE_XZ_URL | tar xf - --xz --directory ~;
     (cd ~/automake-$AUTOMAKE_VER && ./configure --prefix=$GNUTOOLS_ROOT && make -j && make install);
   fi
@@ -556,6 +588,7 @@ before_install:
     m4 --version;
     libtool --version || true;
   fi
+- if [[ "$CONF_CFLAGS" == "" ]]; then CONF_CFLAGS="-g -O2"; fi
 - if [[ "$MAKEFILE_NAME" == "" ]]; then MAKEFILE_NAME=Makefile; fi
 - if [[ "$MAKEFILE_TARGETS" == "" ]]; then MAKEFILE_TARGETS="check"; fi
 
@@ -571,7 +604,8 @@ script:
 - if [[ "$CSA_CHECK" != true && "$CPPCHECK_ENABLE" == ""
         && "$MAKEFILE_NAME" != "Makefile.direct"
         && "$COVERITY_SCAN_BRANCH" != 1 ]]; then
-    ./configure $CONF_OPTIONS --enable-werror && cat include/config.h;
+    CFLAGS="$CONF_CFLAGS" ./configure $CONF_OPTIONS --enable-werror &&
+    cat include/config.h;
   fi
 - if [[ "$CSA_CHECK" != true && "$CPPCHECK_ENABLE" == ""
         && "$COVERITY_SCAN_BRANCH" != 1 ]]; then
@@ -584,6 +618,8 @@ script:
   fi
 - if [ -f gctest.log ]; then cat gctest.log; fi
 - if [ -f disclaim_bench.log ]; then cat disclaim_bench.log; fi
+- if [ -f disclaim_test.log ]; then cat disclaim_test.log; fi
+- if [ -f disclaim_weakmap_test.log ]; then cat disclaim_weakmap_test.log; fi
 - if [ -f threadkey_test.log ]; then cat threadkey_test.log; fi
 - if [[ "$CSA_CHECK" == true ]]; then
     ${CC} --analyze -Xanalyzer -analyzer-output=text -Werror
@@ -593,10 +629,10 @@ script:
         tests/*.c tests/*.cc tools/*.c;
   fi
 - if [[ "$CPPCHECK_ENABLE" != "" ]]; then
-    ~/cppcheck/cppcheck -q -f --error-exitcode=2 -U GC_API -U long -D CPPCHECK
-        -I include -I libatomic_ops/src $CPPCHECK_ENABLE
-        *.cc cord/*.c cord/tests/*.c tests/*.c tests/*.cc tools/*.c
-        extra/gc.c;
+    if [[ "$CPPCHECK_OUT_FILTER" == "" ]]; then CPPCHECK_OUT_FILTER="c "; fi;
+    set -o pipefail; ~/cppcheck/cppcheck --error-exitcode=2
+        -U GC_API -D CPPCHECK -I include $CPPCHECK_ENABLE |
+        grep --line-buffered "$CPPCHECK_OUT_FILTER";
   fi
 - if [[ "$TESTS_CUSTOM_RUN" == true ]]; then
     ASAN_OPTIONS="detect_leaks=1" UBSAN_OPTIONS="halt_on_error=1"
@@ -609,6 +645,7 @@ after_success:
     lcov --remove coverage.info '/usr/*' 'cord/tests/*' 'libatomic_ops/*' 'tests/*' --output-file coverage.info;
     lcov --list coverage.info;
     coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info;
+    bash <(curl -s https://codecov.io/bash);
   fi
 
 deploy:

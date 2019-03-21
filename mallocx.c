@@ -311,21 +311,17 @@ GC_API void GC_CALL GC_generic_malloc_many(size_t lb, int k, void **result)
     DCL_LOCK_STATE;
 
     GC_ASSERT(lb != 0 && (lb & (GRANULE_BYTES-1)) == 0);
-    if (!SMALL_OBJ(lb)
-#     ifdef MANUAL_VDB
-        /* Currently a single object is allocated.                      */
-        /* TODO: GC_dirty should be called for each linked object (but  */
-        /* the last one) to support multiple objects allocation.        */
-        || GC_incremental
-#     endif
-       ) {
+    /* Currently a single object is always allocated if manual VDB. */
+    /* TODO: GC_dirty should be called for each linked object (but  */
+    /* the last one) to support multiple objects allocation.        */
+    if (!SMALL_OBJ(lb) || GC_manual_vdb) {
         op = GC_generic_malloc(lb, k);
         if (EXPECT(0 != op, TRUE))
             obj_link(op) = 0;
         *result = op;
-#       ifdef MANUAL_VDB
-          if (GC_is_heap_ptr(result)) {
-            GC_dirty(result);
+#       ifndef GC_DISABLE_INCREMENTAL
+          if (GC_manual_vdb && GC_is_heap_ptr(result)) {
+            GC_dirty_inner(result);
             REACHABLE_AFTER_DIRTY(op);
           }
 #       endif
@@ -614,15 +610,17 @@ GC_API GC_ATTR_MALLOC char * GC_CALL GC_strndup(const char *str, size_t size)
   }
 #endif /* GC_REQUIRE_WCSDUP */
 
-GC_API void * GC_CALL GC_malloc_stubborn(size_t lb)
-{
-  return GC_malloc(lb);
-}
+#ifndef CPPCHECK
+  GC_API void * GC_CALL GC_malloc_stubborn(size_t lb)
+  {
+    return GC_malloc(lb);
+  }
 
-GC_API void GC_CALL GC_change_stubborn(const void *p GC_ATTR_UNUSED)
-{
-  /* Empty. */
-}
+  GC_API void GC_CALL GC_change_stubborn(const void *p GC_ATTR_UNUSED)
+  {
+    /* Empty. */
+  }
+#endif /* !CPPCHECK */
 
 GC_API void GC_CALL GC_end_stubborn_change(const void *p)
 {

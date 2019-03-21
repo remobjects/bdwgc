@@ -3,7 +3,7 @@
  * Copyright (c) 1991-1996 by Xerox Corporation.  All rights reserved.
  * Copyright (c) 1998 by Silicon Graphics.  All rights reserved.
  * Copyright (c) 1999-2004 Hewlett-Packard Development Company, L.P.
- * Copyright (c) 2008-2018 Ivan Maidanski
+ * Copyright (c) 2008-2019 Ivan Maidanski
  *
  * THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY EXPRESSED
  * OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.
@@ -69,7 +69,7 @@ word GC_non_gc_bytes = 0;  /* Number of bytes not intended to be collected */
 word GC_gc_no = 0;
 
 #ifndef NO_CLOCK
-  static unsigned long full_gc_total_time = 0; /* in msecs, may wrap */
+  static unsigned long full_gc_total_time = 0; /* in ms, may wrap */
   static GC_bool measure_performance = FALSE;
                 /* Do performance measurements if set to true (e.g.,    */
                 /* accumulation of the total time of full collections). */
@@ -124,7 +124,7 @@ const char * const GC_copyright[] =
 "Copyright (c) 1991-1995 by Xerox Corporation.  All rights reserved. ",
 "Copyright (c) 1996-1998 by Silicon Graphics.  All rights reserved. ",
 "Copyright (c) 1999-2009 by Hewlett-Packard Company.  All rights reserved. ",
-"Copyright (c) 2008-2018 Ivan Maidanski ",
+"Copyright (c) 2008-2019 Ivan Maidanski ",
 "THIS MATERIAL IS PROVIDED AS IS, WITH ABSOLUTELY NO WARRANTY",
 " EXPRESSED OR IMPLIED.  ANY USE IS AT YOUR OWN RISK.",
 "See source code for details." };
@@ -173,10 +173,35 @@ GC_INNER int GC_CALLBACK GC_never_stop_func(void)
 #endif
 
 #ifndef NO_CLOCK
-  STATIC CLOCK_TYPE GC_start_time = 0;
+  STATIC unsigned long GC_time_lim_nsec = 0;
+                        /* The nanoseconds add-on to GC_time_limit      */
+                        /* value.  Not updated by GC_set_time_limit().  */
+                        /* Ignored if the value of GC_time_limit is     */
+                        /* GC_TIME_UNLIMITED.                           */
+
+# define TV_NSEC_LIMIT (1000UL * 1000) /* amount of nanoseconds in 1 ms */
+
+  GC_API void GC_CALL GC_set_time_limit_tv(struct GC_timeval_s tv)
+  {
+    GC_ASSERT(tv.tv_ms <= GC_TIME_UNLIMITED);
+    GC_ASSERT(tv.tv_nsec < TV_NSEC_LIMIT);
+    GC_time_limit = tv.tv_ms;
+    GC_time_lim_nsec = tv.tv_nsec;
+  }
+
+  GC_API struct GC_timeval_s GC_CALL GC_get_time_limit_tv(void)
+  {
+    struct GC_timeval_s tv;
+
+    tv.tv_ms = GC_time_limit;
+    tv.tv_nsec = GC_time_lim_nsec;
+    return tv;
+  }
+
+  STATIC CLOCK_TYPE GC_start_time = CLOCK_TYPE_INITIALIZER;
                                 /* Time at which we stopped world.      */
                                 /* used only in GC_timeout_stop_func.   */
-#endif
+#endif /* !NO_CLOCK */
 
 STATIC int GC_n_attempts = 0;   /* Number of attempts at finishing      */
                                 /* collection within GC_time_limit.     */
@@ -210,7 +235,7 @@ GC_API GC_stop_func GC_CALL GC_get_stop_func(void)
   {
     CLOCK_TYPE current_time;
     static unsigned count = 0;
-    unsigned long time_diff;
+    unsigned long time_diff, nsec_diff;
 
     if ((*GC_default_stop_func)())
       return(1);
@@ -218,11 +243,13 @@ GC_API GC_stop_func GC_CALL GC_get_stop_func(void)
     if ((count++ & 3) != 0) return(0);
     GET_TIME(current_time);
     time_diff = MS_TIME_DIFF(current_time,GC_start_time);
-    if (time_diff >= GC_time_limit) {
-        GC_COND_LOG_PRINTF(
-                "Abandoning stopped marking after %lu msecs (attempt %d)\n",
-                time_diff, GC_n_attempts);
-        return(1);
+    nsec_diff = NS_FRAC_TIME_DIFF(current_time, GC_start_time);
+    if (time_diff >= GC_time_limit
+        && (time_diff > GC_time_limit || nsec_diff >= GC_time_lim_nsec)) {
+      GC_COND_LOG_PRINTF("Abandoning stopped marking after %lu ms %lu ns"
+                         " (attempt %d)\n",
+                         time_diff, nsec_diff, GC_n_attempts);
+      return 1;
     }
     return(0);
   }
@@ -349,7 +376,7 @@ STATIC void GC_clear_a_few_frames(void)
 
 /* Heap size at which we need a collection to avoid expanding past      */
 /* limits used by blacklisting.                                         */
-STATIC word GC_collect_at_heapsize = (word)(-1);
+STATIC word GC_collect_at_heapsize = GC_WORD_MAX;
 
 /* Have we allocated enough to amortize a collection? */
 GC_INNER GC_bool GC_should_collect(void)
@@ -412,7 +439,7 @@ STATIC void GC_maybe_gc(void)
         static int n_partial_gcs = 0;
 
         if (!GC_incremental) {
-            /* FIXME: If possible, GC_default_stop_func should be used here */
+            /* TODO: If possible, GC_default_stop_func should be used here */
             GC_try_to_collect_inner(GC_never_stop_func);
             n_partial_gcs = 0;
             return;
@@ -441,7 +468,7 @@ STATIC void GC_maybe_gc(void)
 #       ifndef NO_CLOCK
           if (GC_time_limit != GC_TIME_UNLIMITED) { GET_TIME(GC_start_time); }
 #       endif
-        /* FIXME: If possible, GC_default_stop_func should be   */
+        /* TODO: If possible, GC_default_stop_func should be    */
         /* used instead of GC_never_stop_func here.             */
         if (GC_stopped_mark(GC_time_limit == GC_TIME_UNLIMITED?
                             GC_never_stop_func : GC_timeout_stop_func)) {
@@ -485,7 +512,7 @@ GC_API GC_on_collection_event_proc GC_CALL GC_get_on_collection_event(void)
 GC_INNER GC_bool GC_try_to_collect_inner(GC_stop_func stop_func)
 {
 #   ifndef NO_CLOCK
-      CLOCK_TYPE start_time = 0; /* initialized to prevent warning. */
+      CLOCK_TYPE start_time = CLOCK_TYPE_INITIALIZER;
       GC_bool start_time_valid;
 #   endif
 
@@ -561,7 +588,8 @@ GC_INNER GC_bool GC_try_to_collect_inner(GC_stop_func stop_func)
         if (measure_performance)
           full_gc_total_time += time_diff; /* may wrap */
         if (GC_print_stats)
-          GC_log_printf("Complete collection took %lu msecs\n", time_diff);
+          GC_log_printf("Complete collection took %lu ms %lu ns\n", time_diff,
+                        NS_FRAC_TIME_DIFF(current_time, start_time));
       }
 #   endif
     if (GC_on_collection_event)
@@ -649,7 +677,7 @@ GC_INNER void GC_collect_a_little_inner(int n)
                     break;
                   }
                 } else {
-                  /* FIXME: If possible, GC_default_stop_func should be */
+                  /* TODO: If possible, GC_default_stop_func should be  */
                   /* used here.                                         */
                   (void)GC_stopped_mark(GC_never_stop_func);
                 }
@@ -715,7 +743,7 @@ STATIC GC_bool GC_stopped_mark(GC_stop_func stop_func)
 {
     unsigned i;
 #   ifndef NO_CLOCK
-      CLOCK_TYPE start_time = 0; /* initialized to prevent warning. */
+      CLOCK_TYPE start_time = CLOCK_TYPE_INITIALIZER;
 #   endif
 
     GC_ASSERT(I_HOLD_LOCK());
@@ -804,16 +832,14 @@ STATIC GC_bool GC_stopped_mark(GC_stop_func stop_func)
     if (GC_debugging_started) {
       (*GC_check_heap)();
     }
-    if (GC_on_collection_event)
+    if (GC_on_collection_event) {
       GC_on_collection_event(GC_EVENT_MARK_END);
-
+#     ifdef THREADS
+        GC_on_collection_event(GC_EVENT_PRE_START_WORLD);
+#     endif
+    }
 #   ifdef THREAD_LOCAL_ALLOC
       GC_world_stopped = FALSE;
-#   endif
-
-#   ifdef THREADS
-      if (GC_on_collection_event)
-        GC_on_collection_event(GC_EVENT_PRE_START_WORLD);
 #   endif
 
     START_WORLD();
@@ -847,9 +873,10 @@ STATIC GC_bool GC_stopped_mark(GC_stop_func stop_func)
         world_stopped_total_divisor = ++divisor;
 
         GC_ASSERT(divisor != 0);
-        GC_log_printf(
-                "World-stopped marking took %lu msecs (%u in average)\n",
-                time_diff, total_time / divisor);
+        GC_log_printf("World-stopped marking took %lu ms %lu ns"
+                      " (%u ms in average)\n",
+                      time_diff, NS_FRAC_TIME_DIFF(current_time, start_time),
+                      total_time / divisor);
       }
 #   endif
     return(TRUE);
@@ -984,7 +1011,13 @@ GC_INLINE int GC_compute_heap_usage_percent(void)
 {
   word used = GC_composite_in_use + GC_atomic_in_use;
   word heap_sz = GC_heapsize - GC_unmapped_bytes;
-  return used >= heap_sz ? 0 : used < ((word)-1) / 100 ?
+# if defined(CPPCHECK)
+    word limit = (GC_WORD_MAX >> 1) / 50; /* to avoid a false positive */
+# else
+    const word limit = GC_WORD_MAX / 100;
+# endif
+
+  return used >= heap_sz ? 0 : used < limit ?
                 (int)((used * 100) / heap_sz) : (int)(used / (heap_sz / 100));
 }
 
@@ -993,15 +1026,15 @@ GC_INLINE int GC_compute_heap_usage_percent(void)
 STATIC void GC_finish_collection(void)
 {
 #   ifndef NO_CLOCK
-      CLOCK_TYPE start_time = 0; /* initialized to prevent warning. */
-      CLOCK_TYPE finalize_time = 0;
+      CLOCK_TYPE start_time = CLOCK_TYPE_INITIALIZER;
+      CLOCK_TYPE finalize_time = CLOCK_TYPE_INITIALIZER;
 #   endif
 
     GC_ASSERT(I_HOLD_LOCK());
 #   if defined(GC_ASSERTIONS) \
        && defined(THREAD_LOCAL_ALLOC) && !defined(DBG_HDRS_ALL)
         /* Check that we marked some of our own data.           */
-        /* FIXME: Add more checks.                              */
+        /* TODO: Add more checks. */
         GC_check_tls();
 #   endif
 
@@ -1125,9 +1158,12 @@ STATIC void GC_finish_collection(void)
           /* A convenient place to output finalization statistics.      */
           GC_print_finalization_stats();
 #       endif
-        GC_log_printf("Finalize plus initiate sweep took %lu + %lu msecs\n",
-                      MS_TIME_DIFF(finalize_time,start_time),
-                      MS_TIME_DIFF(done_time,finalize_time));
+        GC_log_printf("Finalize and initiate sweep took %lu ms %lu ns"
+                      " + %lu ms %lu ns\n",
+                      MS_TIME_DIFF(finalize_time, start_time),
+                      NS_FRAC_TIME_DIFF(finalize_time, start_time),
+                      MS_TIME_DIFF(done_time, finalize_time),
+                      NS_FRAC_TIME_DIFF(done_time, finalize_time));
       }
 #   elif !defined(SMALL_CONFIG) && !defined(GC_NO_FINALIZATION)
       if (GC_print_stats)
@@ -1267,7 +1303,7 @@ GC_INNER void GC_add_to_heap(struct hblk *p, size_t bytes)
      */
     GC_collect_at_heapsize += bytes;
     if (GC_collect_at_heapsize < GC_heapsize /* wrapped */)
-       GC_collect_at_heapsize = (word)(-1);
+       GC_collect_at_heapsize = GC_WORD_MAX;
 
     if ((word)p <= (word)GC_least_plausible_heap_addr
         || GC_least_plausible_heap_addr == 0) {
@@ -1307,7 +1343,7 @@ GC_INNER void GC_add_to_heap(struct hblk *p, size_t bytes)
   }
 #endif
 
-void * GC_least_plausible_heap_addr = (void *)ONES;
+void * GC_least_plausible_heap_addr = (void *)GC_WORD_MAX;
 void * GC_greatest_plausible_heap_addr = 0;
 
 GC_INLINE word GC_max(word x, word y)
@@ -1340,6 +1376,7 @@ GC_INNER GC_bool GC_expand_hp_inner(word n)
     word expansion_slop;        /* Number of bytes by which we expect the */
                                 /* heap to expand soon.                   */
 
+    GC_ASSERT(I_HOLD_LOCK());
     if (n < MINHINCR) n = MINHINCR;
     bytes = ROUNDUP_PAGESIZE((size_t)n * HBLKSIZE);
     if (GC_max_heapsize != 0
@@ -1388,7 +1425,7 @@ GC_INNER GC_bool GC_expand_hp_inner(word n)
       GC_collect_at_heapsize =
          GC_heapsize + expansion_slop - 2*MAXHINCR*HBLKSIZE;
       if (GC_collect_at_heapsize < GC_heapsize /* wrapped */)
-         GC_collect_at_heapsize = (word)(-1);
+         GC_collect_at_heapsize = GC_WORD_MAX;
     if (GC_on_heap_resize)
       (*GC_on_heap_resize)(GC_heapsize);
 
@@ -1419,8 +1456,6 @@ GC_INNER unsigned GC_fail_count = 0;
 static word last_fo_entries = 0;
 static word last_bytes_finalized = 0;
 
-#define GC_WORD_MAX (~(word)0)
-
 /* Collect or expand heap in an attempt make the indicated number of    */
 /* free blocks available.  Should be called until the blocks are        */
 /* available (setting retry value to TRUE unless this is the first call */
@@ -1433,6 +1468,7 @@ GC_INNER GC_bool GC_collect_or_expand(word needed_blocks,
     word blocks_to_get;
     IF_CANCEL(int cancel_state;)
 
+    GC_ASSERT(I_HOLD_LOCK());
     DISABLE_CANCEL(cancel_state);
     if (!GC_incremental && !GC_dont_gc &&
         ((GC_dont_expand && GC_bytes_allocd > 0)
@@ -1520,8 +1556,13 @@ GC_INNER ptr_t GC_allocobj(size_t gran, int kind)
 
     while (*flh == 0) {
       ENTER_GC();
-      /* Do our share of marking work */
-        if(TRUE_INCREMENTAL) GC_collect_a_little_inner(1);
+#     ifndef GC_DISABLE_INCREMENTAL
+        if (GC_incremental && GC_time_limit != GC_TIME_UNLIMITED) {
+          /* True incremental mode, not just generational.      */
+          /* Do our share of marking work.                      */
+          GC_collect_a_little_inner(1);
+        }
+#     endif
       /* Sweep blocks for objects of this size */
         GC_ASSERT(!GC_is_full_gc
                   || NULL == GC_obj_kinds[kind].ok_reclaim_list

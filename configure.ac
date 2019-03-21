@@ -14,7 +14,7 @@
 dnl Process this file with autoconf to produce configure.
 
 dnl Initialization.
-AC_INIT(gc,7.7.0,https://github.com/ivmai/bdwgc/issues)
+AC_INIT(gc,8.1.0,https://github.com/ivmai/bdwgc/issues)
 dnl Version must conform to: [0-9]+[.][0-9]+[.][0-9]+
 
 AC_CONFIG_SRCDIR(gcj_mlc.c)
@@ -129,7 +129,7 @@ AC_ARG_ENABLE(parallel-mark,
 )
 
 AC_ARG_ENABLE(thread-local-alloc,
-   [AC_HELP_STRING([--disable-thread-local-alloc],
+   [AS_HELP_STRING([--disable-thread-local-alloc],
         [turn off thread-local allocation optimization])],
    [case "$THREADS" in
       no | none | single)
@@ -141,7 +141,7 @@ AC_ARG_ENABLE(thread-local-alloc,
     esac])
 
 AC_ARG_ENABLE(threads-discovery,
-    [AC_HELP_STRING([--disable-threads-discovery],
+    [AS_HELP_STRING([--disable-threads-discovery],
                     [disable threads discovery in GC])])
 if test "${enable_threads_discovery}" = no; then
     AC_DEFINE([GC_NO_THREADS_DISCOVERY], 1,
@@ -186,6 +186,8 @@ CFLAGS="$old_CFLAGS"
 
 THREADDLLIBS=
 need_atomic_ops_asm=false
+use_parallel_mark=no
+use_thread_local_alloc=no
 # Libraries needed to support dynamic loading and/or threads.
 case "$THREADS" in
  no | none | single)
@@ -198,17 +200,13 @@ case "$THREADS" in
     case "$host" in
       *-*-aix* | *-*-android* | *-*-cygwin* | *-*-darwin* | *-*-dragonfly* | \
       *-*-freebsd* | *-*-haiku* | *-*-hpux11* | *-*-irix* | \
-      *-*-kfreebsd*-gnu | *-*-gnu* | *-*-*linux* | *-*-nacl* | \
+      *-*-kfreebsd*-gnu | *-*-gnu* | *-*-*linux* | *-*-msys* | *-*-nacl* | \
       *-*-netbsd* | *-*-openbsd* | *-*-osf* | *-*-solaris*)
         AC_DEFINE(GC_THREADS)
         AC_DEFINE([_REENTRANT], [1],
                   [Required define if using POSIX threads.])
-        if test "${enable_parallel_mark}" != no; then
-          AC_DEFINE(PARALLEL_MARK)
-        fi
-        if test "${enable_thread_local_alloc}" != no; then
-          AC_DEFINE(THREAD_LOCAL_ALLOC)
-        fi
+        use_parallel_mark=$enable_parallel_mark
+        use_thread_local_alloc=$enable_thread_local_alloc
         default_threadlibs=true
         AC_MSG_WARN("Explicit GC_INIT() calls may be required.")
         ;;
@@ -243,7 +241,7 @@ case "$THREADS" in
       *-*-solaris*)
         THREADDLLIBS="-lpthread -lrt"
         ;;
-      *-*-cygwin*)
+      *-*-cygwin* | *-*-msys*)
         # Cygwin doesn't have a real libpthread, so Libtool can't link
         # against it.
         THREADDLLIBS=""
@@ -252,13 +250,9 @@ case "$THREADS" in
       *-*-mingw*)
         AC_DEFINE(GC_WIN32_PTHREADS)
         # Using pthreads-win32 (or other non-Cygwin pthreads) library.
-        if test "${enable_parallel_mark}" != no; then
-          AC_DEFINE(PARALLEL_MARK)
-        fi
-        if test "${enable_thread_local_alloc}" != no; then
-          AC_DEFINE(THREAD_LOCAL_ALLOC)
-        fi
         THREADDLLIBS="-lpthread"
+        use_parallel_mark=$enable_parallel_mark
+        use_thread_local_alloc=$enable_thread_local_alloc
         win32_threads=true
         ;;
       *-*-darwin*)
@@ -285,15 +279,11 @@ case "$THREADS" in
     ;;
  win32)
     AC_DEFINE(GC_THREADS)
-    if test "${enable_parallel_mark}" != no; then
-      AC_DEFINE(PARALLEL_MARK)
-    fi
-    if test "${enable_thread_local_alloc}" != no; then
-      if test "${enable_parallel_mark}" != no \
-              -o "${enable_shared}" != yes -o "${enable_static}" != no; then
-        # Imply THREAD_LOCAL_ALLOC unless GC_DLL.
-        AC_DEFINE(THREAD_LOCAL_ALLOC)
-      fi
+    use_parallel_mark=$enable_parallel_mark
+    if test "${enable_parallel_mark}" != no \
+            -o "${enable_shared}" != yes -o "${enable_static}" != no; then
+      # Imply THREAD_LOCAL_ALLOC unless GC_DLL.
+      use_thread_local_alloc=$enable_thread_local_alloc
     fi
     if test "${enable_win32_dllmain}" = yes; then
       AC_DEFINE(GC_INSIDE_DLL, 1,
@@ -309,12 +299,8 @@ case "$THREADS" in
     AC_MSG_RESULT($THREADDLLIBS)
     # Use pthread GCC switch
     THREADDLLIBS=-pthread
-    if test "${enable_parallel_mark}" != no; then
-        AC_DEFINE(PARALLEL_MARK)
-    fi
-    if test "${enable_thread_local_alloc}" != no; then
-        AC_DEFINE(THREAD_LOCAL_ALLOC)
-    fi
+    use_parallel_mark=$enable_parallel_mark
+    use_thread_local_alloc=$enable_thread_local_alloc
     AC_MSG_WARN("Explicit GC_INIT() calls may be required.")
     AM_CFLAGS="-pthread $AM_CFLAGS"
     ;;
@@ -323,22 +309,14 @@ case "$THREADS" in
     THREADDLLIBS=-lpthread
     AC_DEFINE(GC_THREADS)
     AC_DEFINE(_REENTRANT)
-    if test "${enable_parallel_mark}" != no; then
-      AC_DEFINE(PARALLEL_MARK)
-    fi
-    if test "${enable_thread_local_alloc}" != no; then
-      AC_DEFINE(THREAD_LOCAL_ALLOC)
-    fi
+    use_parallel_mark=$enable_parallel_mark
+    use_thread_local_alloc=$enable_thread_local_alloc
     ;;
  rtems)
     THREADS=posix
     AC_DEFINE(GC_THREADS)
-    if test "${enable_parallel_mark}" != no; then
-      AC_DEFINE(PARALLEL_MARK)
-    fi
-    if test "${enable_thread_local_alloc}" != no; then
-      AC_DEFINE(THREAD_LOCAL_ALLOC)
-    fi
+    use_parallel_mark=$enable_parallel_mark
+    use_thread_local_alloc=$enable_thread_local_alloc
     ;;
  decosf1 | irix | mach | os2 | solaris | dce | vxworks)
     AC_MSG_ERROR(thread package $THREADS not yet supported)
@@ -352,8 +330,6 @@ AM_CONDITIONAL(THREADS, test x$THREADS != xnone)
 AM_CONDITIONAL(PTHREADS, test x$THREADS = xposix)
 AM_CONDITIONAL(DARWIN_THREADS, test x$darwin_threads = xtrue)
 AM_CONDITIONAL(WIN32_THREADS, test x$win32_threads = xtrue)
-AM_CONDITIONAL(THREAD_LOCAL_ALLOC,
-            test x$enable_thread_local_alloc != xno -a x$THREADS != xnone)
 
 compiler_suncc=no
 pthread_start_standalone=no
@@ -402,6 +378,7 @@ if test "$GCC" = yes; then
   AS_IF([test "$ac_cv_cc_pedantic" = yes],
         [WPEDANTIC="-Wpedantic -Wno-long-long"])
   CFLAGS="-Wall $WEXTRA $WPEDANTIC $CFLAGS"
+  CXXFLAGS="-Wall $WEXTRA $WPEDANTIC $CXXFLAGS"
 fi
 
 AC_MSG_CHECKING(for xlc)
@@ -458,8 +435,8 @@ case "$host" in
   mips-sgi-irix6*) ;;
 # We never want libdl on darwin. It is a fake libdl that just ends up making
 # dyld calls anyway.  The same applies to Cygwin.
-  *-*-darwin*) ;;
-  *-*-cygwin*) ;;
+  *-*-cygwin* | *-*-darwin* | *-*-msys*)
+    ;;
   *)
     AC_CHECK_LIB(dl, dlopen, THREADDLLIBS="$THREADDLLIBS -ldl")
     ;;
@@ -520,7 +497,7 @@ AM_CONDITIONAL(CPLUSPLUS, test "${enable_cplusplus}" = yes)
 if test "$GCC" = yes; then
   if test "${enable_cplusplus}" = yes; then
     case "$host" in
-      *-*-cygwin* | *-*-mingw*)
+      *-*-cygwin* | *-*-mingw* | *-*-msys*)
         AC_MSG_CHECKING([whether libsupc++ required])
         SUPC="`$CXX -print-file-name=libsupc++.a 2>/dev/null`"
         if test -n "$SUPC" -a "$SUPC" != "libsupc++.a"; then
@@ -855,40 +832,6 @@ if test "${enable_large_config}" = yes; then
               [Define to optimize for large heaps or root sets.])
 fi
 
-AC_ARG_ENABLE(handle-fork,
-    [AC_HELP_STRING([--enable-handle-fork[=yes|no|auto|manual]],
-                    [attempt to ensure a usable collector after fork()
-                     in multi-threaded programs (default: auto;
-                     manual: GC_atfork_prepare/parent/child should be
-                     called by the client)])])
-if test "${enable_handle_fork}" = yes; then
-    AC_DEFINE(HANDLE_FORK, 1,
-              [Define to install pthread_atfork() handlers by default.])
-elif test "${enable_handle_fork}" = no; then
-    AC_DEFINE(NO_HANDLE_FORK, 1,
-              [Prohibit installation of pthread_atfork() handlers.])
-elif test "${enable_handle_fork}" != manual -a x$THREADS = xposix; then
-    # If the option is omitted, pthread_atfork handlers are installed
-    # by default for the targets where pthread_atfork is known to work.
-    case "$host" in
-      *-*-android*)
-        # Android NDK does not provide pthread_atfork.
-        ;;
-      *-*-darwin*)
-        # The incremental mode (which is off if parallel marking) conflicts
-        # with fork handling on Darwin.
-        if test "${enable_parallel_mark}" != no; then
-          AC_DEFINE(HANDLE_FORK)
-        fi
-        ;;
-      *-*-aix* | *-*-cygwin* | *-*-freebsd* | *-*-haiku* | \
-      *-*-hpux11* | *-*-irix* | *-*-kfreebsd*-gnu | \
-      *-*-*linux* | *-*-netbsd* | *-*-openbsd* | *-*-osf* | *-*-solaris*)
-        AC_DEFINE(HANDLE_FORK)
-        ;;
-    esac
-fi
-
 dnl This is something of a hack.  When cross-compiling we turn off
 dnl some functionality.  We also enable the "small" configuration.
 dnl These is only correct when targeting an embedded system.  FIXME.
@@ -914,7 +857,7 @@ if test "${enable_gc_assertions}" = yes; then
 fi
 
 AC_ARG_ENABLE(mmap,
-    [AC_HELP_STRING([--enable-mmap],
+    [AS_HELP_STRING([--enable-mmap],
                     [use mmap instead of sbrk to expand the heap])],
     gc_use_mmap=$enableval)
 
@@ -945,7 +888,7 @@ else
 fi
 
 AC_ARG_ENABLE(dynamic-loading,
-    [AC_HELP_STRING([--disable-dynamic-loading],
+    [AS_HELP_STRING([--disable-dynamic-loading],
                     [build the collector with disabled tracing
                      of dynamic library data roots])])
 if test "${enable_dynamic_loading}" = "no"; then
@@ -955,7 +898,7 @@ if test "${enable_dynamic_loading}" = "no"; then
 fi
 
 AC_ARG_ENABLE(register-main-static-data,
-    [AC_HELP_STRING([--disable-register-main-static-data],
+    [AS_HELP_STRING([--disable-register-main-static-data],
                     [skip the initial guess of data root sets])])
 if test "${enable_register_main_static_data}" = "no"; then
     AC_DEFINE([GC_DONT_REGISTER_MAIN_STATIC_DATA], 1,
@@ -1003,7 +946,7 @@ AM_CONDITIONAL([SINGLE_GC_OBJ],
                [test x"$enable_single_obj_compilation" = xyes])
 
 AC_ARG_ENABLE(gcov,
-    [AC_HELP_STRING([--enable-gcov], [turn on code coverage analysis])])
+    [AS_HELP_STRING([--enable-gcov], [turn on code coverage analysis])])
 if test "$enable_gcov" = "yes"; then
   CFLAGS="$CFLAGS --coverage"
   if test "${enable_shared}" = no; then
@@ -1020,6 +963,8 @@ AC_ARG_ENABLE(docs,
         [AC_HELP_STRING([--disable-docs],
                         [do not build and install documentation])])
 AM_CONDITIONAL(ENABLE_DOCS, test x$enable_docs != xno)
+
+AM_CONDITIONAL(ENABLE_SHARED, test x$enable_shared = xyes)
 
 # Atomic Ops
 # ----------
@@ -1080,13 +1025,17 @@ AS_IF([test x"$with_libatomic_ops" = xno \
 AC_MSG_CHECKING([which libatomic_ops to use])
 AS_IF([test x"$with_libatomic_ops" != xno],
   [ AS_IF([test x"$with_libatomic_ops" != xnone -a x"$THREADS" != xnone],
-          [ AC_MSG_RESULT([external]) ],
+          [ AC_MSG_RESULT([external])
+            ATOMIC_OPS_LIBS="-latomic_ops"
+            AC_SUBST([ATOMIC_OPS_LIBS]) ],
           [ AC_MSG_RESULT([none])
             AS_IF([test x"$THREADS" != xnone],
                   [ AC_DEFINE([GC_BUILTIN_ATOMIC], [1],
                               [Use C11 (GCC) atomic intrinsics instead of
-                               libatomic_ops primitives.]) ]) ]) ],
+                               libatomic_ops primitives.]) ]) ])
+    AO_TRYLINK_CFLAGS="" ],
   [ AC_MSG_RESULT([internal])
+    AO_TRYLINK_CFLAGS="-I${srcdir}/libatomic_ops/src"
     ATOMIC_OPS_CFLAGS='-I$(top_builddir)/libatomic_ops/src -I$(top_srcdir)/libatomic_ops/src'
     ATOMIC_OPS_LIBS=""
     AC_SUBST([ATOMIC_OPS_CFLAGS])
@@ -1096,6 +1045,84 @@ AM_CONDITIONAL([USE_INTERNAL_LIBATOMIC_OPS],
     [test x$with_libatomic_ops = xno -a x"$THREADS" != xnone])
 AM_CONDITIONAL([NEED_ATOMIC_OPS_ASM],
     [test x$with_libatomic_ops = xno -a x$need_atomic_ops_asm = xtrue])
+
+# Check whether particular AO primitives are emulated with locks.
+# The check below is based on the fact that linking with the libatomic_ops
+# binary file is not needed in case of absence of the emulation (except for
+# Solaris SPARC).
+AS_IF([test x$with_libatomic_ops != xnone -a x$need_atomic_ops_asm != xtrue],
+    [ old_CFLAGS="$CFLAGS"
+      CFLAGS="$CFLAGS $AO_TRYLINK_CFLAGS $CFLAGS_EXTRA"
+      AC_MSG_CHECKING([for lock-free AO_or primitive])
+      AC_TRY_LINK([#include "atomic_ops.h"],
+                  [AO_t x=0;AO_or(&x,1)],
+        [ AC_MSG_RESULT(yes)
+          AC_DEFINE([HAVE_LOCKFREE_AO_OR], [1],
+            [libatomic_ops AO_or primitive implementation is lock-free.]) ],
+        [ AC_MSG_RESULT(no) ])
+      AC_MSG_CHECKING([for lock-free AO load/store, test-and-set primitives])
+      AC_TRY_LINK([#include "atomic_ops.h"],
+ [AO_t x=0;unsigned char c=0;AO_TS_t z=AO_TS_INITIALIZER;
+  (void)AO_test_and_set_acquire(&z);AO_CLEAR(&z);AO_compiler_barrier();
+  AO_store(&x,AO_load(&x)+1);AO_char_store(&c,AO_char_load(&c)+1);
+  AO_store_release(&x,AO_load_acquire(&x)+1)],
+        [ AC_MSG_RESULT(yes) ],
+        [ AC_MSG_RESULT(no)
+          use_thread_local_alloc=no
+          AC_DEFINE([BASE_ATOMIC_OPS_EMULATED], [1],
+                    [AO load, store and/or test-and-set primitives are
+                     implemented in libatomic_ops using locks.]) ])
+      AS_IF([test x$use_parallel_mark != xno],
+        [ AC_MSG_CHECKING(
+                [for lock-free compare-and-swap and fetch-and-add primitives])
+          AC_TRY_LINK(
+ [#define AO_REQUIRE_CAS
+  #include "atomic_ops.h"],
+ [AO_t x=0;(void)AO_fetch_and_add(&x,1);(void)AO_compare_and_swap(&x,1,2)],
+                    [ AC_MSG_RESULT(yes) ],
+                    [ AC_MSG_RESULT(no)
+                      use_parallel_mark=no ]) ])
+      CFLAGS="$old_CFLAGS" ])
+
+AS_IF([test x$use_parallel_mark != xno],
+      [ AC_DEFINE(PARALLEL_MARK) ])
+AS_IF([test x$use_thread_local_alloc != xno],
+      [ AC_DEFINE(THREAD_LOCAL_ALLOC) ])
+AM_CONDITIONAL(THREAD_LOCAL_ALLOC, test x$use_thread_local_alloc != xno)
+
+AC_ARG_ENABLE(handle-fork,
+    [ AC_HELP_STRING([--enable-handle-fork[=yes|no|auto|manual]],
+                     [attempt to ensure a usable collector after fork()
+                      in multi-threaded programs (default: auto;
+                      manual: GC_atfork_prepare/parent/child should be
+                      called by the client)]) ])
+if test "${enable_handle_fork}" = yes; then
+    AC_DEFINE(HANDLE_FORK, 1,
+              [Define to install pthread_atfork() handlers by default.])
+elif test "${enable_handle_fork}" = no; then
+    AC_DEFINE(NO_HANDLE_FORK, 1,
+              [Prohibit installation of pthread_atfork() handlers.])
+elif test "${enable_handle_fork}" != manual -a x$THREADS = xposix; then
+    # If the option is omitted, pthread_atfork handlers are installed
+    # by default for the targets where pthread_atfork is known to work.
+    case "$host" in
+      *-*-android*)
+        # Android NDK does not provide pthread_atfork.
+        ;;
+      *-*-darwin*)
+        # The incremental mode (which is off if parallel marking) conflicts
+        # with fork handling on Darwin.
+        if test x$use_parallel_mark != xno; then
+          AC_DEFINE(HANDLE_FORK)
+        fi
+        ;;
+      *-*-aix* | *-*-cygwin* | *-*-freebsd* | *-*-haiku* | \
+      *-*-hpux11* | *-*-irix* | *-*-kfreebsd*-gnu | \
+      *-*-*linux* | *-*-netbsd* | *-*-openbsd* | *-*-osf* | *-*-solaris*)
+        AC_DEFINE(HANDLE_FORK)
+        ;;
+    esac
+fi
 
 dnl Produce the Files
 dnl -----------------

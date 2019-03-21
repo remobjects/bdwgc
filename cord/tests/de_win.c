@@ -18,6 +18,8 @@
  *
  * This was written by a nonexpert windows programmer.
  */
+#if defined(__BORLANDC__) || defined(__CYGWIN__) || defined(__MINGW32__) \
+    || defined(__NT__) || defined(_WIN32) || defined(WIN32)
 
 #ifndef WIN32_LEAN_AND_MEAN
 # define WIN32_LEAN_AND_MEAN 1
@@ -51,6 +53,7 @@ int APIENTRY WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
    WNDCLASS    wndclass;
    HACCEL      hAccel;
 
+   GC_set_find_leak(0);
    GC_INIT();
 #  ifndef NO_INCREMENTAL
      GC_enable_incremental();
@@ -374,3 +377,11 @@ void invalidate_line(int i)
     get_line_rect(i, COLS*char_width, &line_r);
     InvalidateRect(hwnd, &line_r, FALSE);
 }
+
+#else
+
+  extern int GC_quiet;
+        /* ANSI C doesn't allow translation units to be empty.  */
+        /* So we guarantee this one is nonempty.                */
+
+#endif /* !WIN32 */

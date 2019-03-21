@@ -287,7 +287,7 @@ GC_INNER void *GC_store_debug_info_inner(void *p, word sz GC_ATTR_UNUSED,
       ((oh *)p) -> oh_bg_ptr = HIDE_BACK_PTR((ptr_t)0);
 #   endif
     ((oh *)p) -> oh_string = string;
-    ((oh *)p) -> oh_int = (word)linenum;
+    ((oh *)p) -> oh_int = linenum;
 #   ifndef SHORT_DBG_HDRS
       ((oh *)p) -> oh_sz = sz;
       ((oh *)p) -> oh_sf = START_FLAG ^ (word)result;
@@ -334,11 +334,11 @@ static void *store_debug_info(void *p, size_t lb,
         return((ptr_t)(&(ohdr -> oh_sf)));
     }
     if (((word *)ohdr)[BYTES_TO_WORDS(gc_sz)-1] != (END_FLAG ^ (word)body)) {
-        return((ptr_t)((word *)ohdr + BYTES_TO_WORDS(gc_sz)-1));
+        return (ptr_t)(&((word *)ohdr)[BYTES_TO_WORDS(gc_sz)-1]);
     }
     if (((word *)body)[SIMPLE_ROUNDED_UP_WORDS(ohdr -> oh_sz)]
         != (END_FLAG ^ (word)body)) {
-        return((ptr_t)((word *)body + SIMPLE_ROUNDED_UP_WORDS(ohdr->oh_sz)));
+        return (ptr_t)(&((word *)body)[SIMPLE_ROUNDED_UP_WORDS(ohdr->oh_sz)]);
     }
     return(0);
   }
@@ -489,9 +489,16 @@ GC_INNER void GC_start_debugging_inner(void)
   GC_print_heap_obj = GC_debug_print_heap_obj_proc;
   GC_debugging_started = TRUE;
   GC_register_displacement_inner((word)sizeof(oh));
+# if defined(CPPCHECK)
+    GC_noop1(GC_debug_header_size);
+# endif
 }
 
-size_t GC_debug_header_size = sizeof(oh);
+const size_t GC_debug_header_size = sizeof(oh);
+
+GC_API size_t GC_CALL GC_get_debug_header_size(void) {
+  return sizeof(oh);
+}
 
 GC_API void GC_CALL GC_debug_register_displacement(size_t offset)
 {
@@ -612,13 +619,15 @@ STATIC void * GC_debug_generic_malloc(size_t lb, int knd, GC_EXTRA_PARAMS)
   }
 #endif /* DBG_HDRS_ALL */
 
-GC_API void * GC_CALL GC_debug_malloc_stubborn(size_t lb, GC_EXTRA_PARAMS)
-{
+#ifndef CPPCHECK
+  GC_API void * GC_CALL GC_debug_malloc_stubborn(size_t lb, GC_EXTRA_PARAMS)
+  {
     return GC_debug_malloc(lb, OPT_RA s, i);
-}
+  }
 
-GC_API void GC_CALL GC_debug_change_stubborn(
+  GC_API void GC_CALL GC_debug_change_stubborn(
                                 const void * p GC_ATTR_UNUSED) {}
+#endif /* !CPPCHECK */
 
 GC_API void GC_CALL GC_debug_end_stubborn_change(const void *p)
 {

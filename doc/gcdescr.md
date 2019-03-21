@@ -377,7 +377,7 @@ of allocation have taken place. After `GC_full_freq` minor collections a major
 collection is started.
 
 All collections initially run uninterrupted until a predetermined amount
-of time (50 msecs by default) has expired. If this allows the collection
+of time (50 ms by default) has expired. If this allows the collection
 to complete entirely, we can avoid correcting for data structure modifications
 during the collection. If it does not complete, we return control to the
 mutator, and perform small amounts of additional GC work during those later
@@ -397,9 +397,10 @@ We keep track of modified pages using one of several distinct mechanisms:
   performance may actually be better with `mprotect` and signals.)
   * (`PCR_VDB`) By relying on an external dirty bit implementation, in this
   case the one in Xerox PCR.
-  * (`MANUAL_VDB`) Through explicit mutator cooperation. This requires the
-  client code to call `GC_end_stubborn_change` (followed by a number of
-  `GC_reachable_here` calls), and is rarely used.
+  * Through explicit mutator cooperation. This enabled by
+  `GC_set_manual_vdb_allowed(1)` call, and requires the client code to call
+  `GC_ptr_store_and_dirty` or `GC_end_stubborn_change` (followed by a number
+  of `GC_reachable_here` calls), and is rarely used.
   * (`DEFAULT_VDB`) By treating all pages as dirty. This is the default
   if none of the other techniques is known to be usable. (Practical only for
   testing.)
