@@ -9,7 +9,7 @@
  */
 
 /*************************************************************************
-This implementation module for gc_c++.h provides an implementation of
+This implementation module for gc_cpp.h provides an implementation of
 the global operators "new" and "delete" that calls the Boehm
 allocator.  All objects allocated by this implementation will be
 uncollectible but part of the root set of the collector.
@@ -34,17 +34,14 @@ built-in "new" and "delete".
 
 #include "gc_cpp.h" // for GC_OPERATOR_NEW_ARRAY, GC_NOEXCEPT
 
+#if !(defined(_MSC_VER) || defined(__DMC__)) || defined(GC_NO_INLINE_STD_NEW)
+
 #if defined(GC_NEW_ABORTS_ON_OOM) || defined(_LIBCPP_NO_EXCEPTIONS)
 # define GC_ALLOCATOR_THROW_OR_ABORT() GC_abort_on_oom()
 #else
+// Use bad_alloc() directly instead of GC_throw_bad_alloc() call.
 # define GC_ALLOCATOR_THROW_OR_ABORT() throw std::bad_alloc()
 #endif
-
-GC_API void GC_CALL GC_throw_bad_alloc() {
-  GC_ALLOCATOR_THROW_OR_ABORT();
-}
-
-#if !defined(_MSC_VER) && !defined(__DMC__)
 
 # if !defined(GC_NEW_DELETE_THROW_NOT_NEEDED) \
     && !defined(GC_NEW_DELETE_NEED_THROW) && GC_GNUC_PREREQ(4, 2) \
@@ -53,7 +50,13 @@ GC_API void GC_CALL GC_throw_bad_alloc() {
 # endif
 
 # ifdef GC_NEW_DELETE_NEED_THROW
-#   define GC_DECL_NEW_THROW throw(std::bad_alloc)
+#   if __cplusplus < 201703L
+#     define GC_DECL_NEW_THROW throw(std::bad_alloc)
+#   else
+      // The "dynamic exception" syntax was deprecated in C++11
+      // and removed in C++17.
+#     define GC_DECL_NEW_THROW noexcept(false)
+#   endif
 # else
 #   define GC_DECL_NEW_THROW /* empty */
 # endif
@@ -64,6 +67,23 @@ GC_API void GC_CALL GC_throw_bad_alloc() {
       GC_ALLOCATOR_THROW_OR_ABORT();
     return obj;
   }
+
+# ifdef _MSC_VER
+    // This new operator is used by VC++ in case of Debug builds.
+    void* operator new(size_t size, int /* nBlockUse */,
+                       const char* szFileName, int nLine)
+    {
+#     ifdef GC_DEBUG
+        void* obj = GC_debug_malloc_uncollectable(size, szFileName, nLine);
+#     else
+        void* obj = GC_MALLOC_UNCOLLECTABLE(size);
+        (void)szFileName; (void)nLine;
+#     endif
+      if (0 == obj)
+        GC_ALLOCATOR_THROW_OR_ABORT();
+      return obj;
+    }
+# endif // _MSC_VER
 
   void operator delete(void* obj) GC_NOEXCEPT {
     GC_FREE(obj);
@@ -76,6 +96,15 @@ GC_API void GC_CALL GC_throw_bad_alloc() {
         GC_ALLOCATOR_THROW_OR_ABORT();
       return obj;
     }
+
+#   ifdef _MSC_VER
+      // This new operator is used by VC++ 7+ in Debug builds.
+      void* operator new[](size_t size, int nBlockUse,
+                           const char* szFileName, int nLine)
+      {
+        return operator new(size, nBlockUse, szFileName, nLine);
+      }
+#   endif // _MSC_VER
 
     void operator delete[](void* obj) GC_NOEXCEPT {
       GC_FREE(obj);
@@ -96,4 +125,4 @@ GC_API void GC_CALL GC_throw_bad_alloc() {
 #   endif
 # endif // C++14
 
-#endif // !_MSC_VER
+#endif // !_MSC_VER && !__DMC__ || GC_NO_INLINE_STD_NEW

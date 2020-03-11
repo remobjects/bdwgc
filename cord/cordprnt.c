@@ -43,16 +43,23 @@
 #define CONV_RESULT_LEN 50      /* Maximum length of any        */
                                 /* conversion with default      */
                                 /* width and prec.              */
+#if defined(CPPCHECK)
+# define MACRO_BLKSTMT_BEGIN {
+# define MACRO_BLKSTMT_END   }
+#else
+# define MACRO_BLKSTMT_BEGIN do {
+# define MACRO_BLKSTMT_END   } while (0)
+#endif
 
-#define OUT_OF_MEMORY do { \
+#define OUT_OF_MEMORY MACRO_BLKSTMT_BEGIN \
                         if (CORD_oom_fn != 0) (*CORD_oom_fn)(); \
                         fprintf(stderr, "Out of memory\n"); \
                         abort(); \
-                      } while (0)
+                      MACRO_BLKSTMT_END
 
 static int ec_len(CORD_ec x)
 {
-    return(CORD_len(x[0].ec_cord) + (x[0].ec_bufptr - x[0].ec_buf));
+    return (int)(CORD_len(x[0].ec_cord) + (x[0].ec_bufptr - x[0].ec_buf));
 }
 
 /* Possible nonumeric precision values. */
@@ -232,7 +239,7 @@ int CORD_vsprintf(CORD * out, CORD format, va_list args)
                         } else {
                             short * pos_ptr;
                             pos_ptr = va_arg(args, short *);
-                            *pos_ptr = ec_len(result);
+                            *pos_ptr = (short)ec_len(result);
                         }
                         goto done;
                     case 'r':

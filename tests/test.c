@@ -36,7 +36,9 @@
 #if defined(CPPCHECK) && defined(GC_PTHREADS) && !defined(_GNU_SOURCE)
 # define _GNU_SOURCE 1
 #endif
-#undef GC_NO_THREAD_REDIRECTS
+#ifdef GC_NO_THREADS_DISCOVERY
+# undef GC_NO_THREAD_REDIRECTS
+#endif
 #include "gc.h"
 
 #ifndef NTHREADS /* Number of additional threads to fork. */
@@ -61,16 +63,9 @@
 # include "gc_typed.h"
 #endif
 
+#define NOT_GCBUILD
 #include "private/gc_priv.h"    /* For output, locking,                 */
                                 /* some statistics and gcconfig.h.      */
-
-#if defined(MSWIN32) || defined(MSWINCE)
-# ifndef WIN32_LEAN_AND_MEAN
-#   define WIN32_LEAN_AND_MEAN 1
-# endif
-# define NOSERVICE
-# include <windows.h>
-#endif /* MSWIN32 || MSWINCE */
 
 #if defined(GC_PRINT_VERBOSE_STATS) || defined(GCTEST_PRINT_VERBOSE)
 # define print_stats VERBOSE
@@ -663,8 +658,8 @@ void check_marks_int_list(sexpr x)
     {
         DWORD thread_id;
         HANDLE h;
-        h = GC_CreateThread((SECURITY_ATTRIBUTES *)NULL, (word)0,
-                            tiny_reverse_test, NULL, (DWORD)0, &thread_id);
+        h = CreateThread((SECURITY_ATTRIBUTES *)NULL, (word)0,
+                         tiny_reverse_test, NULL, (DWORD)0, &thread_id);
                                 /* Explicitly specify types of the      */
                                 /* arguments to test the prototype.     */
         if (h == (HANDLE)NULL) {
@@ -730,13 +725,13 @@ void *GC_CALLBACK reverse_test_inner(void *data)
 
 #   if defined(MACOS) \
        || (defined(UNIX_LIKE) && defined(NO_GETCONTEXT)) /* e.g. musl */
-      /* Assume 128K stacks at least. */
+      /* Assume 128 KB stacks at least. */
 #     define BIG 1000
 #   elif defined(PCR)
-      /* PCR default stack is 100K.  Stack frames are up to 120 bytes. */
+      /* PCR default stack is 100 KB.  Stack frames are up to 120 bytes. */
 #     define BIG 700
 #   elif defined(MSWINCE) || defined(RTEMS)
-      /* WinCE only allows 64K stacks */
+      /* WinCE only allows 64 KB stacks. */
 #     define BIG 500
 #   elif defined(OSF1)
       /* OSF has limited stack space by default, and large frames. */
@@ -1183,7 +1178,7 @@ void typed_test(void)
     GC_descr d2;
     GC_descr d3 = GC_make_descriptor(bm_large, 32);
     GC_descr d4 = GC_make_descriptor(bm_huge, 320);
-    GC_word * x = (GC_word *)GC_malloc_explicitly_typed(
+    GC_word * x = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(
                                 320 * sizeof(GC_word) + 123, d4);
     int i;
 
@@ -1201,7 +1196,7 @@ void typed_test(void)
     d2 = GC_make_descriptor(bm2, 2);
     old = 0;
     for (i = 0; i < 4000; i++) {
-        newP = (GC_word *)GC_malloc_explicitly_typed(4 * sizeof(GC_word), d1);
+        newP = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(4 * sizeof(GC_word), d1);
         CHECK_OUT_OF_MEMORY(newP);
         AO_fetch_and_add1(&collectable_count);
         if (newP[0] != 0 || newP[1] != 0) {
@@ -1212,19 +1207,19 @@ void typed_test(void)
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word *)GC_malloc_explicitly_typed(4 * sizeof(GC_word), d2);
+        newP = (GC_word *)GC_MALLOC_EXPLICITLY_TYPED(4 * sizeof(GC_word), d2);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word*)GC_malloc_explicitly_typed(33 * sizeof(GC_word), d3);
+        newP = (GC_word*)GC_MALLOC_EXPLICITLY_TYPED(33 * sizeof(GC_word), d3);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
         GC_PTR_STORE_AND_DIRTY(newP + 1, old);
         old = newP;
         AO_fetch_and_add1(&collectable_count);
-        newP = (GC_word *)GC_calloc_explicitly_typed(4, 2 * sizeof(GC_word),
+        newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(4, 2 * sizeof(GC_word),
                                                      d1);
         CHECK_OUT_OF_MEMORY(newP);
         newP[0] = 17;
@@ -1232,10 +1227,10 @@ void typed_test(void)
         old = newP;
         AO_fetch_and_add1(&collectable_count);
         if (i & 0xff) {
-          newP = (GC_word *)GC_calloc_explicitly_typed(7, 3 * sizeof(GC_word),
+          newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(7, 3 * sizeof(GC_word),
                                                        d2);
         } else {
-          newP = (GC_word *)GC_calloc_explicitly_typed(1001,
+          newP = (GC_word *)GC_CALLOC_EXPLICITLY_TYPED(1001,
                                                        3 * sizeof(GC_word),
                                                        d2);
           if (newP != NULL && (newP[0] != 0 || newP[1] != 0)) {
@@ -1312,6 +1307,18 @@ void * GC_CALLBACK inc_int_counter(void *pcounter)
  return NULL;
 }
 
+struct thr_hndl_sb_s {
+  void *gc_thread_handle;
+  struct GC_stack_base sb;
+};
+
+void * GC_CALLBACK set_stackbottom(void *cd)
+{
+  GC_set_stackbottom(((struct thr_hndl_sb_s *)cd)->gc_thread_handle,
+                     &((struct thr_hndl_sb_s *)cd)->sb);
+  return NULL;
+}
+
 #ifndef MIN_WORDS
 # define MIN_WORDS 2
 #endif
@@ -1332,6 +1339,7 @@ void run_one_test(void)
       pid_t pid;
       int wstatus;
 #   endif
+    struct thr_hndl_sb_s thr_hndl_sb;
 
     GC_FREE(0);
 #   ifdef THREADS
@@ -1476,6 +1484,7 @@ void run_one_test(void)
              GC_FREE(GC_MALLOC_IGNORE_OFF_PAGE(2));
            }
          }
+    thr_hndl_sb.gc_thread_handle = GC_get_my_stackbottom(&thr_hndl_sb.sb);
 #   ifdef GC_GCJ_SUPPORT
       GC_REGISTER_DISPLACEMENT(sizeof(struct fake_vtable *));
       GC_init_gcj_malloc(0, (void *)(GC_word)fake_gcj_mark_proc);
@@ -1545,6 +1554,8 @@ void run_one_test(void)
           exit(0);
         }
 #   endif
+    (void)GC_call_with_alloc_lock(set_stackbottom, &thr_hndl_sb);
+
     /* Repeated list reversal test. */
 #   ifndef NO_CLOCK
         GET_TIME(start_time);
@@ -1632,12 +1643,6 @@ void GC_CALLBACK reachable_objs_counter(void *obj, size_t size,
   (*(unsigned *)pcounter)++;
 }
 
-void * GC_CALLBACK reachable_objs_count_enumerator(void *pcounter)
-{
-  GC_enumerate_reachable_objects_inner(reachable_objs_counter, pcounter);
-  return NULL;
-}
-
 #define NUMBER_ROUND_UP(v, bound) ((((v) + (bound) - 1) / (bound)) * (bound))
 
 void check_heap_stats(void)
@@ -1668,7 +1673,7 @@ void check_heap_stats(void)
 #     endif
 #   else
 #     if CPP_WORDSZ == 64
-        max_heap_sz = 25000000;
+        max_heap_sz = 26000000;
 #     else
         max_heap_sz = 16000000;
 #     endif
@@ -1717,8 +1722,9 @@ void check_heap_stats(void)
           FAIL;
         }
       }
-    (void)GC_call_with_alloc_lock(reachable_objs_count_enumerator,
-                                  &obj_count);
+    GC_alloc_lock();
+    GC_enumerate_reachable_objects_inner(reachable_objs_counter, &obj_count);
+    GC_alloc_unlock();
     GC_printf("Completed %u tests\n", n_tests);
     GC_printf("Allocated %d collectable objects\n", (int)collectable_count);
     GC_printf("Allocated %d uncollectable objects\n",
@@ -1868,6 +1874,27 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
 
 #if !defined(PCR) && !defined(GC_WIN32_THREADS) && !defined(GC_PTHREADS)
 
+#if defined(_DEBUG) && (_MSC_VER >= 1900) /* VS 2015+ */
+# ifndef _CRTDBG_MAP_ALLOC
+#   define _CRTDBG_MAP_ALLOC
+# endif
+# include <crtdbg.h>
+  /* Ensure that there is no system-malloc-allocated objects at normal  */
+  /* exit (i.e. no such memory leaked).                                 */
+# define CRTMEM_CHECK_INIT() \
+        (void)_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF)
+# define CRTMEM_DUMP_LEAKS() \
+        do { \
+          if (_CrtDumpMemoryLeaks()) { \
+            GC_printf("System-malloc-allocated memory leaked\n"); \
+            FAIL; \
+          } \
+        } while (0)
+#else
+# define CRTMEM_CHECK_INIT() (void)0
+# define CRTMEM_DUMP_LEAKS() (void)0
+#endif // !_MSC_VER
+
 #if ((defined(MSWIN32) && !defined(__MINGW32__)) || defined(MSWINCE)) \
     && !defined(NO_WINMAIN_ENTRY)
   int APIENTRY WinMain(HINSTANCE instance GC_ATTR_UNUSED,
@@ -1888,6 +1915,7 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
   int main(void)
 #endif
 {
+    CRTMEM_CHECK_INIT();
 #   if defined(CPPCHECK) && !defined(NO_WINMAIN_ENTRY) \
        && ((defined(MSWIN32) && !defined(__MINGW32__)) || defined(MSWINCE))
       GC_noop1((GC_word)&WinMain);
@@ -1905,8 +1933,7 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
     GC_set_warn_proc(warn_proc);
 #   if !defined(GC_DISABLE_INCREMENTAL) \
        && (defined(TEST_DEFAULT_VDB) || !defined(DEFAULT_VDB))
-#     if !defined(MAKE_BACK_GRAPH) && !defined(NO_INCREMENTAL) \
-         && !(defined(MPROTECT_VDB) && defined(USE_MUNMAP))
+#     if !defined(MAKE_BACK_GRAPH) && !defined(NO_INCREMENTAL)
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {
@@ -1959,7 +1986,7 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
 #      if defined(MACOS) && defined(USE_TEMPORARY_MEMORY)
          UNTESTED(GC_MacTemporaryNewPtr);
 #      endif
-#      if !defined(_M_AMD64) && defined(_MSC_VER)
+#      if !defined(_M_X64) && defined(_MSC_VER)
          UNTESTED(GetFileLineFromStack);
          UNTESTED(GetModuleNameFromStack);
          UNTESTED(GetSymbolNameFromStack);
@@ -2076,9 +2103,10 @@ void GC_CALLBACK warn_proc(char *msg, GC_word p)
          UNTESTED(GC_debug_wcsdup);
 #      endif
 #   endif
-#   ifdef MSWIN32
+#   if defined(MSWIN32) || defined(MSWINCE) || defined(CYGWIN32)
       GC_win32_free_heap();
 #   endif
+    CRTMEM_DUMP_LEAKS();
 #   ifdef RTEMS
       exit(0);
 #   else
@@ -2210,7 +2238,7 @@ DWORD __stdcall thr_window(void * arg GC_ATTR_UNUSED)
       GC_printf("Event creation failed %d\n", (int)GetLastError());
       FAIL;
     }
-    win_thr_h = GC_CreateThread(NULL, 0, thr_window, 0, 0, &thread_id);
+    win_thr_h = CreateThread(NULL, 0, thr_window, 0, 0, &thread_id);
     if (win_thr_h == (HANDLE)NULL) {
       GC_printf("Thread creation failed %d\n", (int)GetLastError());
       FAIL;
@@ -2222,7 +2250,7 @@ DWORD __stdcall thr_window(void * arg GC_ATTR_UNUSED)
   set_print_procs();
 # if NTHREADS > 0
    for (i = 0; i < NTHREADS; i++) {
-    h[i] = GC_CreateThread(NULL, 0, thr_run_one_test, 0, 0, &thread_id);
+    h[i] = CreateThread(NULL, 0, thr_run_one_test, 0, 0, &thread_id);
     if (h[i] == (HANDLE)NULL) {
       GC_printf("Thread creation failed %d\n", (int)GetLastError());
       FAIL;
@@ -2350,8 +2378,7 @@ int main(void)
 #   if !defined(GC_DISABLE_INCREMENTAL) \
        && (defined(TEST_DEFAULT_VDB) || !defined(DEFAULT_VDB))
 #     if !defined(REDIRECT_MALLOC) && !defined(MAKE_BACK_GRAPH) \
-         && !defined(USE_PROC_FOR_LIBRARIES) && !defined(NO_INCREMENTAL) \
-         && !defined(USE_MUNMAP)
+         && !defined(USE_PROC_FOR_LIBRARIES) && !defined(NO_INCREMENTAL)
         GC_enable_incremental();
 #     endif
       if (GC_is_incremental_mode()) {

@@ -135,15 +135,23 @@ if CPLUSPLUS
 lib_LTLIBRARIES += libgccpp.la
 pkginclude_HEADERS += include/gc_allocator.h include/gc_cpp.h
 include_HEADERS += include/extra/gc_cpp.h
-libgccpp_la_SOURCES = gc_cpp.cc
+libgccpp_la_SOURCES = gc_badalc.cc gc_cpp.cc
 libgccpp_la_LIBADD = ./libgc.la
 libgccpp_la_LDFLAGS = -version-info $(LIBGCCPP_VER_INFO) -no-undefined
+if GC_TBA_LIBRARY
+# The same as libgccpp but contains only gc_badalc.o.
+lib_LTLIBRARIES += libgctba.la
+libgctba_la_SOURCES = gc_badalc.cc
+libgctba_la_LIBADD = ./libgc.la
+# Set the same version as for libgccpp.
+libgctba_la_LDFLAGS = -version-info $(LIBGCCPP_VER_INFO) -no-undefined
+endif
 endif
 
 ## FIXME: If Visual C++ users use Makefile.am, this should go into
 ## pkginclude_HEADERS with proper AM_CONDITIONALization.  Otherwise
 ## delete this comment.
-EXTRA_DIST += gc_cpp.cpp
+EXTRA_DIST += gc_badalc.cpp gc_cpp.cpp
 
 
 # Misc
@@ -196,19 +204,17 @@ EXTRA_DIST += README.QUICK
 
 # other makefiles
 # :GOTCHA: deliberately we do not include 'Makefile'
-EXTRA_DIST += BCC_MAKEFILE NT_MAKEFILE \
-    OS2_MAKEFILE PCR-Makefile digimars.mak \
-    Makefile.direct SMakefile.amiga WCC_MAKEFILE autogen.sh \
-    CMakeLists.txt tests/CMakeLists.txt
+EXTRA_DIST += NT_MAKEFILE OS2_MAKEFILE PCR-Makefile digimars.mak \
+    Makefile.direct SMakefile.amiga WCC_MAKEFILE autogen.sh CMakeLists.txt \
+    build/s60v3/bld.inf build/s60v3/libgc.mmp
 
 # files used by makefiles other than Makefile.am
 #
 EXTRA_DIST += tools/if_mach.c tools/if_not_there.c tools/setjmp_t.c \
-    tools/threadlibs.c gc.mak extra/MacOS.c extra/AmigaOS.c \
+    tools/threadlibs.c extra/MacOS.c extra/AmigaOS.c \
     extra/symbian/global_end.cpp extra/symbian/global_start.cpp \
     extra/symbian/init_global_static_roots.cpp extra/symbian.cpp \
     extra/pcr_interface.c extra/real_malloc.c \
-    build/s60v3/bld.inf build/s60v3/libgc.mmp \
     extra/Mac_files/datastart.c extra/Mac_files/dataend.c \
     extra/Mac_files/MacOS_config.h \
     include/private/msvc_dbg.h extra/msvc_dbg.c tools/callprocs.sh
@@ -225,3 +231,6 @@ include tests/tests.am
 include doc/doc.am
 ## Putting these at the top causes cord to be built first, and not find
 ## libgc.a on HP/UX.  There may be a better fix.
+
+# A dummy target for mono build.
+test-bundle:

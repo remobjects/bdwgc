@@ -636,8 +636,27 @@ GC_API GC_await_finalize_proc GC_CALL GC_get_await_finalize_proc(void)
 /* overflow is handled by the caller, and is not a disaster.            */
 STATIC void GC_normal_finalize_mark_proc(ptr_t p)
 {
+# if defined(_MSC_VER) && defined(I386)
+    hdr * hhdr = HDR(p);
+    /* This is a manually inlined variant of GC_push_obj().  Otherwise  */
+    /* some optimizer bug is tickled in VC for X86 (v19, at least).     */
+#   define mark_stack_top GC_mark_stack_top
+    mse * mark_stack_limit = GC_mark_stack + GC_mark_stack_size;
+    word descr = hhdr -> hb_descr;
+
+    if (descr != 0) {
+      mark_stack_top++;
+      if ((word)mark_stack_top >= (word)mark_stack_limit) {
+        mark_stack_top = GC_signal_mark_stack_overflow(mark_stack_top);
+      }
+      mark_stack_top -> mse_start = p;
+      mark_stack_top -> mse_descr.w = descr;
+    }
+#   undef mark_stack_top
+# else
     GC_mark_stack_top = GC_push_obj(p, HDR(p), GC_mark_stack_top,
                                     GC_mark_stack + GC_mark_stack_size);
+# endif
 }
 
 /* This only pays very partial attention to the mark descriptor.        */
@@ -756,10 +775,8 @@ STATIC void GC_register_finalizer_inner(void * obj,
             GC_dirty(GC_fnlz_roots.fo_head + index);
           UNLOCK();
 #         ifndef DBG_HDRS_ALL
-            if (EXPECT(new_fo != 0, FALSE)) {
               /* Free unused new_fo returned by GC_oom_fn() */
               GC_free((void *)new_fo);
-            }
 #         endif
           return;
         }
@@ -1368,8 +1385,8 @@ GC_INNER void GC_notify_or_invoke_finalizers(void)
 
     /* These variables require synchronization to avoid data races.     */
     if (last_finalizer_notification != GC_gc_no) {
-        last_finalizer_notification = GC_gc_no;
         notifier_fn = GC_finalizer_notifier;
+        last_finalizer_notification = GC_gc_no;
     }
     UNLOCK();
     if (notifier_fn != 0)
